@@ -1,0 +1,9 @@
+; $Id$
+name = Transformers Pipelines
+description = Pipeline UI to map actions.
+package = transformers
+version = VERSION
+core = 7.x
+files[] = transformers_pipelines.module
+dependencies[] = rules
+dependencies[] = jsplumb

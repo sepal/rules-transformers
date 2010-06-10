@@ -1,0 +1,8 @@
+; $Id$
+name = Transformers Actions
+description = Rules actions that allow map and parse various data structure.
+package = transformers
+version = VERSION
+core = 7.x
+files[] = transformers_actions.module
+dependencies[] = rules
