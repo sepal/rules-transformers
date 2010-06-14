@@ -1,4 +1,4 @@
-; $Id$
+; $Id: transformers_actions.info,v 1.1.2.1 2010/06/14 14:15:39 sgilits Exp $
 name = Transformers Actions
 description = Rules actions that allow map and parse various data structure.
 package = transformers
