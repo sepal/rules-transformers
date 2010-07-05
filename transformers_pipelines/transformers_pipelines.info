@@ -1,7 +1,7 @@
 ; $Id: transformers_pipelines.info,v 1.1.2.1 2010/06/14 14:15:39 sgilits Exp $
 name = Transformers Pipelines
 description = Pipeline UI to map actions.
-package = transformers
+package = Rules
 version = VERSION
 core = 7.x
 files[] = transformers_pipelines.module
