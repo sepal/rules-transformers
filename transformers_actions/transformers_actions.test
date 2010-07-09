@@ -1,0 +1,37 @@
+<?php
+// $Id$
+
+/**
+ * @file Transformers Actions - File containing test cases.
+ */
+
+class TransformersActionsTestCase extends DrupalWebTestCase {
+  static function getInfo() {
+    return array(
+      'name' => 'Rules Transformers Action tests',
+      'description' => 'Tests all actions.',
+      'group' => 'Rules',
+    );
+  }
+
+  protected $csv_array = array();
+
+  function setUp() {
+    parent::setUp('rules', 'transformers_actions', 'entity_metadata', 'entity');
+    $x=0;
+    for($i=0;$i<3;$i++) {
+      for($j=0;$j<2;$j++) {
+        $this->csv_array[$i][$j] = $x;
+        $x++;
+      }
+    }
+  }
+
+
+  function testCSVTransformer() {
+    $csv = "Year,Make\n1997,Ford\n2000,Mercury";
+    list($result) = rules_action('csv_import', array())->execute($csv);
+    $this->assert($result[1][1] == 'Ford', 'Test with default delimiter');
+    $this->assert($result[2][0] == '2000', 'Test with delimiter from parameter');
+  }
+}
