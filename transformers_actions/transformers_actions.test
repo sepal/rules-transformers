@@ -19,19 +19,40 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
   function setUp() {
     parent::setUp('rules', 'transformers_actions', 'entity_metadata', 'entity');
     $x=0;
-    for($i=0;$i<3;$i++) {
-      for($j=0;$j<2;$j++) {
+    for ($i=0;$i<3;$i++) {
+      for ($j=0;$j<2;$j++) {
         $this->csv_array[$i][$j] = $x;
         $x++;
       }
     }
   }
 
-
-  function testCSVTransformer() {
+  function testCSVImport() {
     $csv = "Year,Make\n1997,Ford\n2000,Mercury";
     list($result) = rules_action('csv_import', array())->execute($csv);
     $this->assert($result[1][1] == 'Ford', 'Test with default delimiter');
     $this->assert($result[2][0] == '2000', 'Test with delimiter from parameter');
+  }
+
+  function testCSVExport() {
+    $csv[0][0] = 'website';
+    $csv[0][1] = 'site';
+
+    $csv[1][0] = 'dubfx';
+    $csv[1][1] = 'http://www.dubfx.net/';
+
+    $csv[2][0] = 'beardyman';
+    $csv[2][1] = 'http://www.beardyman.co.uk/';
+
+    $csv[3][0] = 'nathan_flutebox_lee';
+    $csv[3][1] = 'http://www.myspace.com/nathanfluteboxlee';
+
+    $csv[4][0] = 'tim_exile';
+    $csv[4][1] = 'http://www.myspace.com/timexile';
+
+    $string = "website,site\ndubfx,http://www.dubfx.net/\nbeardyman,http://www.beardyman.co.uk/\nnathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\ntim_exile,http://www.myspace.com/timexile\n";
+    list($result) = rules_action('csv_export', array())->execute($csv);
+    $this->assert($result == $string, 'Test with default delimiter');
+
   }
 }

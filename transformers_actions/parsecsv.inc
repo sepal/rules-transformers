@@ -2,7 +2,7 @@
 // $Id: ParserCSV.inc,v 1.2 2009/11/05 18:26:27 alexb Exp $
 
 /**
- * Contains CSV Parser.
+ * @file: Contains CSV Parser.
  * Functions in this file are independent of the Feeds specific implementation.
  * Thanks to jpetso http://drupal.org/user/56020 for most of the code in this
  * file.
