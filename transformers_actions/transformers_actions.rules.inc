@@ -5,6 +5,9 @@
  * @file Transformers Actions - Rules integration.
  */
 
+/**
+ * Implements hook_datainfo().
+ */
 function transformers_actions_data_info() {
   return array(
     'csv' => array(
@@ -18,6 +21,9 @@ function transformers_actions_data_info() {
   );
 }
 
+/**
+ * Implements hook_rules_action_info().
+ */
 function transformers_actions_rules_action_info() {
   return array(
     'csv_import' => array(
@@ -26,7 +32,7 @@ function transformers_actions_rules_action_info() {
         'string' => array(
           'type' => 'text',
           'label' => t('CSV string'),
-          'description' => t('CSV data as text.'),
+          'description' => t('CSV data as text'),
         ),
         'delimiter' => array(
           'type' => 'text',
@@ -67,6 +73,41 @@ function transformers_actions_rules_action_info() {
       'base' => 'transformers_actions_csv_export',
       'group' => t('Transformers'),
     ),
+    'xml_import' => array(
+      'label' => t('XML import'),
+      'parameter' => array(
+        'string' => array(
+          'type' => 'text',
+          'label' => t('XML string'),
+          'description' => t('XML data as text'),
+        ),
+      ),
+      'provides' => array(
+        'xml' => array(
+          'type' => 'xml',
+          'label' => t('XML doc'),
+        ),
+      ),
+      'base' => 'transformers_actions_xml_import',
+      'group' => t('Transformers'),
+    ),
+    'xml_export' => array(
+      'label' => t('XML export'),
+      'parameter' => array(
+        'string' => array(
+          'type' => 'xml',
+          'label' => t('XML doc'),
+        ),
+      ),
+      'provides' => array(
+        'string' => array(
+          'type' => 'xml',
+          'label' => t('XML data as text'),
+        ),
+      ),
+      'base' => 'transformers_actions_xml_export',
+      'group' => t('Transformers'),
+    ),
   );
 }
 
@@ -79,7 +120,7 @@ function transformers_actions_content_to_file($data) {
 }
 
 /*
- * Action: Import CSV data from a string
+ * Action: Import CSV data from a string.
  */
 function transformers_actions_csv_import($string, $delimiter = '') {
   $csv = NULL;
@@ -91,9 +132,8 @@ function transformers_actions_csv_import($string, $delimiter = '') {
   return array('csv' => $csv);
 }
 
-
 /**
- * Action: Expor CSV data to a string
+ * Action: Export CSV data to a string.
  */
 function transformers_actions_csv_export($csv, $export = '') {
   $string = '';
@@ -104,5 +144,22 @@ function transformers_actions_csv_export($csv, $export = '') {
   }
   fclose($fp);
   $string = file_get_contents($uri);
+  return array('string' => $string);
+}
+
+/**
+ * Action: Import XML data from a string.
+ */
+function transformers_actions_xml_import($string) {
+  $doc = new DOMDocument();
+  $doc->loadXML($string);
+  return array('xml' => $doc);
+}
+
+/**
+ * Action: Export XML data to a string.
+ */
+function transformers_actions_xml_export($doc) {
+  $string = $doc->saveXML();
   return array('string' => $string);
 }

@@ -53,6 +53,32 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $string = "website,site\ndubfx,http://www.dubfx.net/\nbeardyman,http://www.beardyman.co.uk/\nnathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\ntim_exile,http://www.myspace.com/timexile\n";
     list($result) = rules_action('csv_export', array())->execute($csv);
     $this->assert($result == $string, 'Test with default delimiter');
+  }
 
+  function testXMLImport() {
+    $data = "";
+    $data .= "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>";
+    $data .= "<beatboxing>";
+    $data .= "<artist site=\"http://www.dubfx.net/\">";
+    $data .= "dubfx";
+    $data .= "</artist>";
+    $data .= "<artist site=\"http://www.beardyman.co.uk/\">";
+    $data .= "beardyman";
+    $data .= "</artist>";
+    $data .= "<artist site=\"http://www.myspace.com/nathanfluteboxlee\">";
+    $data .= "nathan_flutebox_lee";
+    $data .= "</artist>";
+    $data .= "<artist site=\"http://www.myspace.com/timexile\">";
+    $data .= "tim_exile";
+    $data .= "</artist>";
+    $data .= "</beatboxing>";
+
+    list($result) = rules_action('xml_import', array())->execute($data);
+    $artists = $result->getElementsByTagName("artist");
+    $artist = $artists->item(1);
+
+    $this->assert($artist->nodeName == 'artist', 'Comparing tagname.');
+    $this->assert($artist->textContent == 'beardyman', 'Comparing child node text.');
+    $this->assert($artist->getAttribute('site') == 'http://www.beardyman.co.uk/', 'Comparing attribute.');
   }
 }
