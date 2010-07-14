@@ -4,7 +4,6 @@ description = Rules actions that allow map and parse various data structure.
 package = Rules
 version = VERSION
 core = 7.x
-files[] = parsecsv.inc
 files[] = transformers_actions.module
 files[] = transformers_actions.rules.inc
 files[] = transformers_actions.test

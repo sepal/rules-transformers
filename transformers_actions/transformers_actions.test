@@ -28,14 +28,18 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
   }
 
   function testCSVImport() {
-    $csv = "Year,Make\n1997,Ford\n2000,Mercury";
+    $csv = "";
+    $csv .= "artist,site\n";
+    $csv .= "dubfx,http://www.dubfx.net/\n";
+    $csv .= "beardyman, http://www.beardyman.co.uk/\n";
+    $csv .= "nathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\n";
+    $csv .= "tim_exile,http://www.myspace.com/timexile\n";
     list($result) = rules_action('csv_import', array())->execute($csv);
-    $this->assert($result[1][1] == 'Ford', 'Test with default delimiter');
-    $this->assert($result[2][0] == '2000', 'Test with delimiter from parameter');
+    $this->assert($result[1][1] == 'http://www.dubfx.net/', 'Test with default delimiter');
   }
 
   function testCSVExport() {
-    $csv[0][0] = 'website';
+    $csv[0][0] = 'artist';
     $csv[0][1] = 'site';
 
     $csv[1][0] = 'dubfx';
@@ -50,7 +54,7 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $csv[4][0] = 'tim_exile';
     $csv[4][1] = 'http://www.myspace.com/timexile';
 
-    $string = "website,site\ndubfx,http://www.dubfx.net/\nbeardyman,http://www.beardyman.co.uk/\nnathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\ntim_exile,http://www.myspace.com/timexile\n";
+    $string = "artist,site\ndubfx,http://www.dubfx.net/\nbeardyman,http://www.beardyman.co.uk/\nnathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\ntim_exile,http://www.myspace.com/timexile";
     list($result) = rules_action('csv_export', array())->execute($csv);
     $this->assert($result == $string, 'Test with default delimiter');
   }
