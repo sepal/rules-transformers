@@ -14,75 +14,78 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     );
   }
 
-  protected $csv_array = array();
+  protected $data = array();
 
   function setUp() {
     parent::setUp('rules', 'transformers_actions', 'entity_metadata', 'entity');
-    $x=0;
-    for ($i=0;$i<3;$i++) {
-      for ($j=0;$j<2;$j++) {
-        $this->csv_array[$i][$j] = $x;
-        $x++;
+
+    $this->data[0][0] = 'artist';
+    $this->data[0][1] = 'site';
+
+    $this->data[1][0] = 'dubfx';
+    $this->data[1][1] = 'http://www.dubfx.net/';
+
+    $this->data[2][0] = 'beardyman';
+    $this->data[2][1] = 'http://www.beardyman.co.uk/';
+
+    $this->data[3][0] = 'nathan_flutebox_lee';
+    $this->data[3][1] = 'http://www.myspace.com/nathanfluteboxlee';
+
+    $this->data[4][0] = 'tim_exile';
+    $this->data[4][1] = 'http://www.myspace.com/timexile';
+  }
+
+  function generateXML() {
+    $dom = new DOMDocument("1.0", "UTF-8");
+    $nd_bb = $dom->createElement("beatboxing");
+
+    foreach ($this->data as $i => $artist) {
+      if ($i > 0) {
+        $nd_artist = $dom->createElement("artist");
+        $nd_site = $dom->createAttribute('site');
+        $nd_name = $dom->createTextNode($artist[0]);
+        $nd_site_value = $dom->createTextNode($artist[1]);
+        $nd_site->appendChild($nd_site_value);
+        $nd_artist->appendChild($nd_name);
+        $nd_artist->appendChild($nd_site);
+        $nd_bb->appendChild($nd_artist);
       }
     }
+
+    $dom->appendChild($nd_bb);
+    return $dom;
   }
 
-  function testCSVImport() {
-    $csv = "";
-    $csv .= "artist,site\n";
-    $csv .= "dubfx,http://www.dubfx.net/\n";
-    $csv .= "beardyman, http://www.beardyman.co.uk/\n";
-    $csv .= "nathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\n";
-    $csv .= "tim_exile,http://www.myspace.com/timexile\n";
-    list($result) = rules_action('csv_import', array())->execute($csv);
-    $this->assert($result[1][1] == 'http://www.dubfx.net/', 'Test with default delimiter');
+  function testCSVTransformer() {
+    $string = "";
+    $string .= "artist,site\n";
+    $string .= "dubfx,http://www.dubfx.net/\n";
+    $string .= "beardyman,http://www.beardyman.co.uk/\n";
+    $string .= "nathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\n";
+    $string .= "tim_exile,http://www.myspace.com/timexile";
+
+    list($csv_text) = rules_action('csv_export', array())->execute($this->data);
+    $this->assert($csv_text == $string, 'Testing CSV export');
+
+    list($result) = rules_action('csv_import', array())->execute($string);
+    $this->assert($result[1][1] == $this->data[1][1], 'Testing CSV import');
   }
 
-  function testCSVExport() {
-    $csv[0][0] = 'artist';
-    $csv[0][1] = 'site';
 
-    $csv[1][0] = 'dubfx';
-    $csv[1][1] = 'http://www.dubfx.net/';
+  function testXMLTransformer() {
+    //Exporting XML
+    $data = $this->generateXML();
+    list($string) = rules_action('xml_export', array())->execute($data);
 
-    $csv[2][0] = 'beardyman';
-    $csv[2][1] = 'http://www.beardyman.co.uk/';
+    //Importing XML
+    list($doc) = rules_action('xml_import', array())->execute($string);
 
-    $csv[3][0] = 'nathan_flutebox_lee';
-    $csv[3][1] = 'http://www.myspace.com/nathanfluteboxlee';
+    $artists1 = $doc->getElementsByTagName("artist");
+    $artist1 = $artists1->item(1);
 
-    $csv[4][0] = 'tim_exile';
-    $csv[4][1] = 'http://www.myspace.com/timexile';
+    $artists0 = $data->getElementsByTagName("artist");
+    $artist0 = $artists0->item(1);
 
-    $string = "artist,site\ndubfx,http://www.dubfx.net/\nbeardyman,http://www.beardyman.co.uk/\nnathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\ntim_exile,http://www.myspace.com/timexile";
-    list($result) = rules_action('csv_export', array())->execute($csv);
-    $this->assert($result == $string, 'Test with default delimiter');
-  }
-
-  function testXMLImport() {
-    $data = "";
-    $data .= "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>";
-    $data .= "<beatboxing>";
-    $data .= "<artist site=\"http://www.dubfx.net/\">";
-    $data .= "dubfx";
-    $data .= "</artist>";
-    $data .= "<artist site=\"http://www.beardyman.co.uk/\">";
-    $data .= "beardyman";
-    $data .= "</artist>";
-    $data .= "<artist site=\"http://www.myspace.com/nathanfluteboxlee\">";
-    $data .= "nathan_flutebox_lee";
-    $data .= "</artist>";
-    $data .= "<artist site=\"http://www.myspace.com/timexile\">";
-    $data .= "tim_exile";
-    $data .= "</artist>";
-    $data .= "</beatboxing>";
-
-    list($result) = rules_action('xml_import', array())->execute($data);
-    $artists = $result->getElementsByTagName("artist");
-    $artist = $artists->item(1);
-
-    $this->assert($artist->nodeName == 'artist', 'Comparing tagname.');
-    $this->assert($artist->textContent == 'beardyman', 'Comparing child node text.');
-    $this->assert($artist->getAttribute('site') == 'http://www.beardyman.co.uk/', 'Comparing attribute.');
+    $this->assert($artist0 == $artist1, "XMl Transformer test");
   }
 }

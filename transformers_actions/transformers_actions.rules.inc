@@ -158,5 +158,5 @@ function transformers_actions_xml_import($string) {
  */
 function transformers_actions_xml_export($doc) {
   $string = $doc->saveXML();
-  return array('string' => $string);
+  return array('xml_text' => $string);
 }
