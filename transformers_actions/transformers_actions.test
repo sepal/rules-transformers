@@ -35,6 +35,9 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $this->data[4][1] = 'http://www.myspace.com/timexile';
   }
 
+  /**
+   * Generate XML document.
+   */
   function generateXML() {
     $dom = new DOMDocument("1.0", "UTF-8");
     $nd_bb = $dom->createElement("beatboxing");
@@ -56,6 +59,9 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     return $dom;
   }
 
+  /**
+   * Tests the CSV import and export actions.
+   */
   function testCSVTransformer() {
     $string = "";
     $string .= "artist,site\n";
@@ -64,21 +70,23 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $string .= "nathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\n";
     $string .= "tim_exile,http://www.myspace.com/timexile";
 
-    list($csv_text) = rules_action('csv_export', array())->execute($this->data);
-    $this->assert($csv_text == $string, 'Testing CSV export');
+    list($csv_text) = rules_action('csv_export')->execute($this->data);
+    $this->assertEqual($csv_text == $string, 'Testing CSV export');
 
-    list($result) = rules_action('csv_import', array())->execute($string);
-    $this->assert($result[1][1] == $this->data[1][1], 'Testing CSV import');
+    list($result) = rules_action('csv_import')->execute($string);
+    $this->assertEqual($result[1][1] == $this->data[1][1], 'Testing CSV import');
   }
 
-
+  /**
+   * Tests the XML import and export actions.
+   */
   function testXMLTransformer() {
     //Exporting XML
     $data = $this->generateXML();
-    list($string) = rules_action('xml_export', array())->execute($data);
+    list($string) = rules_action('xml_export')->execute($data);
 
     //Importing XML
-    list($doc) = rules_action('xml_import', array())->execute($string);
+    list($doc) = rules_action('xml_import')->execute($string);
 
     $artists1 = $doc->getElementsByTagName("artist");
     $artist1 = $artists1->item(1);
@@ -86,6 +94,6 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $artists0 = $data->getElementsByTagName("artist");
     $artist0 = $artists0->item(1);
 
-    $this->assert($artist0 == $artist1, "XMl Transformer test");
+    $this->assertEqual($artist0 == $artist1, "XMl Transformer test");
   }
 }

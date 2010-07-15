@@ -139,7 +139,7 @@ function transformers_actions_csv_export($csv, $delimiter = ',') {
       $csv_text .= implode($delimiter, $line) . "\n";
     }
     //Delete the last line break
-    $csv_text = substr($csv_text, 0, strlen($csv_text)-1);
+    $csv_text = drupal_substr($csv_text, 0, drupal_strlen($csv_text)-1);
   }
   return array('csv_text' => $csv_text);
 }
