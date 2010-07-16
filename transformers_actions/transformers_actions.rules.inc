@@ -86,7 +86,7 @@ function transformers_actions_rules_action_info() {
       'provides' => array(
         'xml' => array(
           'type' => 'xml',
-          'label' => t('XML data structure'),
+          'label' => t('XML document'),
         ),
       ),
       'base' => 'transformers_actions_xml_import',
@@ -95,9 +95,9 @@ function transformers_actions_rules_action_info() {
     'xml_export' => array(
       'label' => t('XML export'),
       'parameter' => array(
-        'string' => array(
+        'xml_text' => array(
           'type' => 'xml',
-          'label' => t('XML data structure'),
+          'label' => t('XML document'),
         ),
       ),
       'provides' => array(
@@ -134,22 +134,20 @@ function transformers_actions_csv_import($csv_text, $delimiter = ',') {
  */
 function transformers_actions_csv_export($csv, $delimiter = ',') {
   $csv_text = '';
-  if (is_array($csv)) {
-    foreach ($csv as $line) {
-      $csv_text .= implode($delimiter, $line) . "\n";
-    }
-    //Delete the last line break
-    $csv_text = drupal_substr($csv_text, 0, drupal_strlen($csv_text)-1);
+  foreach ($csv as $line) {
+    $csv_text .= implode($delimiter, $line) . "\n";
   }
+  //Delete the last line break
+  $csv_text = drupal_substr($csv_text, 0, drupal_strlen($csv_text)-1);
   return array('csv_text' => $csv_text);
 }
 
 /**
  * Action: Import XML data from a string.
  */
-function transformers_actions_xml_import($string) {
+function transformers_actions_xml_import($xml_text) {
   $doc = new DOMDocument();
-  $doc->loadXML($string);
+  $doc->loadXML($xml_text);
   return array('xml' => $doc);
 }
 

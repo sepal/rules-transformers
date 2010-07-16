@@ -71,10 +71,12 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $string .= "tim_exile,http://www.myspace.com/timexile";
 
     list($csv_text) = rules_action('csv_export')->execute($this->data);
-    $this->assertEqual($csv_text == $string, 'Testing CSV export');
+    $this->assertEqual($csv_text, $string, 'Testing CSV export.');
 
     list($result) = rules_action('csv_import')->execute($string);
-    $this->assertEqual($result[1][1] == $this->data[1][1], 'Testing CSV import');
+    $this->assertEqual($result[1][1], $this->data[1][1], 'Testing CSV import.');
+    $this->assertEqual(count($result), 5, 'CSV import: 5 line elements present.');
+    $this->assertEqual(count($result[0]), 2, 'CSV import: 2 row elements present.');
   }
 
   /**
@@ -88,12 +90,13 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     //Importing XML
     list($doc) = rules_action('xml_import')->execute($string);
 
-    $artists1 = $doc->getElementsByTagName("artist");
+    $artists1 = $doc->getElementsByTagName('artist');
     $artist1 = $artists1->item(1);
 
-    $artists0 = $data->getElementsByTagName("artist");
+    $artists0 = $data->getElementsByTagName('artist');
     $artist0 = $artists0->item(1);
 
-    $this->assertEqual($artist0 == $artist1, "XMl Transformer test");
+    $this->assertEqual($artist0, $artist1, 'XMl Transformer test');
+    $this->assertEqual($artists1->length, 4, 'XML import: All 4 artist nodes present.');
   }
 }
