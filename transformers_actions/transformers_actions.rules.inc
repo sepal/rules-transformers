@@ -95,7 +95,7 @@ function transformers_actions_rules_action_info() {
     'xml_export' => array(
       'label' => t('XML export'),
       'parameter' => array(
-        'xml_text' => array(
+        'xml' => array(
           'type' => 'xml',
           'label' => t('XML document'),
         ),
@@ -154,7 +154,7 @@ function transformers_actions_xml_import($xml_text) {
 /**
  * Action: Export XML data to a string.
  */
-function transformers_actions_xml_export($doc) {
-  $string = $doc->saveXML();
+function transformers_actions_xml_export($xml) {
+  $string = $xml->saveXML();
   return array('xml_text' => $string);
 }
