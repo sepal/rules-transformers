@@ -8,15 +8,15 @@
 /**
  * Implements hook_rules_data_info().
  */
-function transformers_actions_data_info() {
+function transformers_actions_rules_data_info() {
   return array(
     'csv' => array(
       'label' => t('CSV'),
-      wrap => TRUE,
+      'wrap' => TRUE,
     ),
     'xml' => array(
       'label' => t('XML'),
-      wrap => TRUE,
+      'wrap' => TRUE,
     ),
   );
 }
