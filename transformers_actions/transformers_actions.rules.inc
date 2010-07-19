@@ -133,13 +133,11 @@ function transformers_actions_csv_import($csv_text, $delimiter = ',') {
  * Action: Export CSV data to a string.
  */
 function transformers_actions_csv_export($csv, $delimiter = ',') {
-  $csv_text = '';
+  $csv_array = array();
   foreach ($csv as $line) {
-    $csv_text .= implode($delimiter, $line) . "\n";
+    $csv_array[] = implode($delimiter, $line);
   }
-  //Delete the last line break
-  $csv_text = drupal_substr($csv_text, 0, drupal_strlen($csv_text)-1);
-  return array('csv_text' => $csv_text);
+  return array('csv_text' => implode("\n", $csv_array));
 }
 
 /**
