@@ -40,6 +40,12 @@ function transformers_actions_rules_action_info() {
           'optional' => TRUE,
           'default value' => ',',
         ),
+        'skip_first_line' => array(
+          'type' => 'boolean',
+          'label' => t('Skip the first line'),
+          'optional' => TRUE,
+          'default value' => FALSE,
+        ),
       ),
       'provides' => array(
         'csv' => array(
@@ -62,6 +68,12 @@ function transformers_actions_rules_action_info() {
           'label' => t('Delimiter'),
           'optional' => TRUE,
           'default value' => ',',
+        ),
+        'skip_first_line' => array(
+          'type' => 'boolean',
+          'label' => t('Skip the first line'),
+          'optional' => TRUE,
+          'default value' => FALSE,
         ),
       ),
       'provides' => array(
@@ -113,16 +125,18 @@ function transformers_actions_rules_action_info() {
   );
 }
 
-/*
+/**
  * Action: Import CSV data from a string.
  */
-function transformers_actions_csv_import($csv_text, $delimiter = ',') {
+function transformers_actions_csv_import($csv_text, $delimiter = ',', $skip_first_line = FALSE) {
   $csv = NULL;
-  if (!empty($csv_text)) {
-    $array = preg_split("/\n/", $csv_text);
-    foreach ($array as $i => $line) {
+  $array = preg_split("/\n/", $csv_text);
+  $j = 0;
+  foreach ($array as $i => $line) {
+    if ((!$skip_first_line) || ($i >0)) {
       if (!empty($line)) {
-        $csv[$i] = preg_split("/$delimiter/", $line);
+        $csv[$j] = preg_split("/$delimiter/", $line);
+        $j++;
       }
     }
   }
@@ -132,10 +146,12 @@ function transformers_actions_csv_import($csv_text, $delimiter = ',') {
 /**
  * Action: Export CSV data to a string.
  */
-function transformers_actions_csv_export($csv, $delimiter = ',') {
+function transformers_actions_csv_export($csv, $delimiter = ',', $skip_first_line = FALSE) {
   $csv_array = array();
-  foreach ($csv as $line) {
-    $csv_array[] = implode($delimiter, $line);
+  foreach ($csv as $i => $line) {
+    if (((!$skip_first_line) || ($i >0))) {
+      $csv_array[] = implode($delimiter, $line);
+    }
   }
   return array('csv_text' => implode("\n", $csv_array));
 }

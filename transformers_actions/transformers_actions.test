@@ -77,6 +77,14 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $this->assertEqual($result[1][1], $this->data[1][1], 'Testing CSV import.');
     $this->assertEqual(count($result), 5, 'CSV import: 5 line elements present.');
     $this->assertEqual(count($result[0]), 2, 'CSV import: 2 row elements present.');
+
+    list($csv_text) = rules_action('csv_export', array('delimiter' => ';', 'skip_first_line' => TRUE))->execute($this->data);
+
+    list($result) = rules_action('csv_import', array('delimiter' => ';', 'skip_first_line' => TRUE))->execute($csv_text);
+
+    $this->assertEqual($result[0][1], $this->data[2][1], 'Testing CSV import with parameters.');
+    $this->assertEqual(count($result), 3, 'CSV import: 5 line elements present with parameters.');
+    $this->assertEqual(count($result[0]), 2, 'CSV import: 2 row elements present with parameters.');
   }
 
   /**
