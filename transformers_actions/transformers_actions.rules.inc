@@ -113,7 +113,7 @@ function transformers_actions_rules_action_info() {
   );
 }
 
-/*
+/**
  * Action: Import CSV data from a string.
  */
 function transformers_actions_csv_import($csv_text, $delimiter = ',') {
