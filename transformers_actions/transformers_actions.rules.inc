@@ -10,13 +10,22 @@
  */
 function transformers_actions_rules_data_info() {
   return array(
-    'csv' => array(
-      'label' => t('CSV'),
+    'csv_line' => array(
+      'label' => t('CSV line'),
       'wrap' => TRUE,
+      'property defaults' => array(
+        'getter callback' => 'transformers_actions_metadata_wrapper_csv_getter',
+      ),
+      // The variable has to provide the correct property info.
+      'property info' => array(),
     ),
     'xml' => array(
       'label' => t('XML'),
       'wrap' => TRUE,
+    ),
+    'metadata' => array(
+      'label' => t('Metada'),
+      'ui class' => 'TransformersActionsMetadataUI',
     ),
   );
 }
@@ -46,10 +55,16 @@ function transformers_actions_rules_action_info() {
           'optional' => TRUE,
           'default value' => FALSE,
         ),
+        'metadata' => array(
+          'type' => 'metadata',
+          'restriction' => 'input',
+          'label' => t('Metadata for CSV'),
+          'description' => t('Describe the columns for CSV'),
+        ),
       ),
       'provides' => array(
         'csv' => array(
-          'type' => 'csv',
+          'type' => 'list<csv_line>',
           'label' => t('CSV data'),
         ),
       ),
@@ -60,7 +75,7 @@ function transformers_actions_rules_action_info() {
       'label' => t('CSV export'),
       'parameter' => array(
         'csv' => array(
-          'type' => 'csv',
+          'type' => 'list<csv_line>',
           'label' => t('CSV data'),
         ),
         'delimiter' => array(
@@ -141,6 +156,28 @@ function transformers_actions_csv_import($csv_text, $delimiter = ',', $skip_firs
     }
   }
   return array('csv' => $csv);
+}
+
+/**
+ * Process callback for csv import.
+ */
+function transformers_actions_csv_import_process(RulesPlugin $element) {
+  $property_info = array();
+  foreach ($element->settings['metadata'] as $i => $column) {
+    if ($column['type'] != '0') {
+      $property_info[$column['label']] = array(
+        'type' => $column['type'],
+        'label' => $column['label'],
+      );
+    }
+  };
+  $element_info['provides']['csv'] = array(
+    'property defaults' => array(
+      'getter callback' => 'transformers_actions_metadata_wrapper_csv_getter',
+    ),
+  );
+  $element_info['provides']['csv']['property info'] = $property_info;
+  $element->alterInfo($element_info);
 }
 
 /**

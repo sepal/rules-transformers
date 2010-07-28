@@ -73,14 +73,14 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     list($csv_text) = rules_action('csv_export')->execute($this->data);
     $this->assertEqual($csv_text, $string, 'Testing CSV export.');
 
-    list($result) = rules_action('csv_import')->execute($string);
+    list($result) = rules_action('csv_import', array('metadata' => array()))->execute($string);
     $this->assertEqual($result[1][1], $this->data[1][1], 'Testing CSV import.');
     $this->assertEqual(count($result), 5, 'CSV import: 5 line elements present.');
     $this->assertEqual(count($result[0]), 2, 'CSV import: 2 row elements present.');
 
     list($csv_text) = rules_action('csv_export', array('delimiter' => ';', 'skip_first_line' => TRUE))->execute($this->data);
 
-    list($result) = rules_action('csv_import', array('delimiter' => ';', 'skip_first_line' => TRUE))->execute($csv_text);
+    list($result) = rules_action('csv_import', array('metadata' => array(), 'delimiter' => ';', 'skip_first_line' => TRUE))->execute($csv_text);
 
     $this->assertEqual($result[0][1], $this->data[2][1], 'Testing CSV import with parameters.');
     $this->assertEqual(count($result), 3, 'CSV import: 5 line elements present with parameters.');
@@ -106,5 +106,74 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
 
     $this->assertEqual($artist0, $artist1, 'XMl Transformer test');
     $this->assertEqual($artists1->length, 4, 'XML import: All 4 artist nodes present.');
+  }
+
+  /**
+   * Test Metaentity integration.
+   */
+  function testMetaentity() {
+    $data[0][0] = 'artist';
+    $data[0][1] = 'site';
+
+    $data[1][0] = 'dubfx';
+    $data[1][1] = 'http://www.dubfx.net/';
+
+    $data[2][0] = 'beardyman';
+    $data[2][1] = 'http://www.beardyman.co.uk/';
+
+    $data[3][0] = 'nathan_flutebox_lee';
+    $data[3][1] = 'http://www.myspace.com/nathanfluteboxlee';
+
+    $data[4][0] = 'tim_exile';
+    $data[4][1] = 'http://www.myspace.com/timexile';
+
+    $info = array(
+      'type' => 'list<csv_line>',
+      'property info' => array(
+        'column1' => array(
+          'type' => 'text',
+          'label' => t('First column name:')
+        ),
+        'column2' => array(
+          'type' => 'text',
+          'label' => t('Second column name:')
+        ),
+      ),
+    );
+
+    $wrapper = rules_wrap_data($data, $info);
+    $this->assertEqual($wrapper[1]->column1->value(), 'dubfx');
+  }
+
+  /**
+   * Test rule embeded actions
+   */
+  function testActionInRules() {
+    $string = "";
+    $string .= "artist,site\n";
+    $string .= "dubfx,http://www.dubfx.net/\n";
+    $string .= "beardyman,http://www.beardyman.co.uk/\n";
+    $string .= "nathan_flutebox_lee,http://www.myspace.com/nathanfluteboxlee\n";
+    $string .= "tim_exile,http://www.myspace.com/timexile";
+
+    $metadata = array(
+      'artist' => array(
+        'type' => 'text',
+        'label' => 'artist',
+      ),
+      'site' => array(
+        'type' => 'text',
+        'label' => 'site',
+      ),
+    );
+
+    $rule = rule();
+    $rule->action('csv_import', array('csv_text' => $string, 'delimiter' => ',', 'skip_first_line' => TRUE, 'metadata' => $metadata));
+    $rule->action('drupal_message', array('message:select' => 'csv:1:artist'));
+
+    $rule->integrityCheck();
+    $rule->execute();
+    $msg = drupal_get_messages();
+    $this->assertEqual(array_pop($msg['status']), 'beardyman', 'Checking rule evalution.');
   }
 }

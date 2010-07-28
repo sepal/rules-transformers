@@ -5,3 +5,61 @@
 /**
  * @file Transformers Actions
  */
+
+/**
+ * Returns the value from the called column
+ */
+function transformers_actions_metadata_wrapper_csv_getter($data, $options, $name, $data_type, $info) {
+  // Get info about csv list, $data is one line only.
+  $csv_info = $info['parent']->info();
+  // Now return alle the keys as an indexed array,
+  $column_key = array_keys($csv_info['property info']);
+  // and search for the column name in the array.
+  $index = array_search($name, $column_key, TRUE);
+  // Now return the data corresponding to the called calloumn.
+  return $data[$index];
+}
+
+class TransformersActionsMetadataUI extends RulesDataUIText {
+  /**
+   * Returns an array of options to use with a select for the items specified
+   * in the given hook.
+   */
+  public static function getOptions($hook) {
+    $sorted_data = array();
+    $data = rules_fetch_data($hook);
+    foreach ($data as $name => $set) {
+      $sorted_data[$name] = $set['label'];
+    }
+    asort($sorted_data);
+    return $sorted_data;
+  }
+
+  public static function inputForm($name, $info, $settings, RulesPlugin $element) {
+    //$form = parent::inputForm($name, $info, $settings, $element);
+    //$form[$name] = array();
+    $options = array_map('drupal_ucfirst', TransformersActionsMetadataUI::getOptions('data_info'));
+
+    for ($i=0; $i<=5; $i++) {
+      $form[$name][$i] = array(
+        '#type' => 'fieldset',
+        '#title' => t('@index. column', array('@index' => $i+1)),
+        '#collapsible' => FALSE,
+      );
+      $form[$name][$i]['type'] = array(
+        '#type' => 'select',
+        '#title' => t('Data type'),
+        '#options' => array(0 => '--') + $options,
+        '#default_value' => 0,
+      );
+      $form[$name][$i]['label'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Label'),
+      );
+    }
+    return $form;
+  }
+
+  public static function render($value) {
+  }
+}
