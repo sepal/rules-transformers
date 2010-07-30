@@ -23,8 +23,15 @@ function transformers_actions_rules_data_info() {
       'label' => t('XML'),
       'wrap' => TRUE,
     ),
+    'xml_data' => array(
+      'label' => t('XML Data'),
+      'wrap' => TRUE,
+      'property defaults' => array(
+        'getter callback' => 'transformers_actions_metadata_wrapper_xml_getter',
+      ),
+    ),
     'metadata' => array(
-      'label' => t('Metada'),
+      'label' => t('Metadata'),
       'ui class' => 'TransformersActionsMetadataUI',
     ),
   );
@@ -137,6 +144,33 @@ function transformers_actions_rules_action_info() {
       'base' => 'transformers_actions_xml_export',
       'group' => t('Transformers'),
     ),
+    'xpath_evalution' => array(
+      'label' => t('Evaluate XPath'),
+      'parameter' => array(
+        'xml' => array(
+          'type' => 'xml',
+          'label' => t('XML document'),
+        ),
+        'xpath' => array(
+          'type' => 'text',
+          'label' => t('XPath expression'),
+        ),
+        'metadata' => array(
+          'type' => 'metadata',
+          'restriction' => 'input',
+          'label' => t('Metadata for XML'),
+          'description' => t('Describe attributes or nodes, attributes starting with an @.'),
+        ),
+      ),
+      'provides' => array(
+        'xml_list' => array(
+          'type' => 'list<xml_data>',
+          'label' => t('List of xml nodes'),
+        ),
+      ),
+      'base' => 'transformers_actions_xpath_evalution',
+      'group' => t('Transformers'),
+    ),
   );
 }
 
@@ -208,4 +242,14 @@ function transformers_actions_xml_import($xml_text) {
 function transformers_actions_xml_export($xml) {
   $string = $xml->saveXML();
   return array('xml_text' => $string);
+}
+
+/**
+ * Action: Evaluate XPath
+ */
+function transformers_actions_xpath_evalution($xml, $xpath) {
+  $xpath_obj = new DOMXPath($xml);
+  $node_list = $xpath_obj->query($xpath);
+  $list = nodelist2array($node_list);
+  return array('xml_list' => $list);
 }

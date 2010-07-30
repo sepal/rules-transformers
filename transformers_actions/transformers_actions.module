@@ -7,19 +7,46 @@
  */
 
 /**
- * Returns the value from the called column
+ * Returns the value from the called column from csv data.
+ * The functions returns the entry corresponding to the called column, which
+ * is only metadata.
+ * So if for example <em>csv:1:firstColumn</em> is called it will search for
+ * the data for the collumn <em>firstColumn</em>.
  */
 function transformers_actions_metadata_wrapper_csv_getter($data, $options, $name, $data_type, $info) {
-  // Get info about csv list, $data is one line only.
+  // This
   $csv_info = $info['parent']->info();
-  // Now return alle the keys as an indexed array,
   $column_key = array_keys($csv_info['property info']);
-  // and search for the column name in the array.
   $index = array_search($name, $column_key, TRUE);
-  // Now return the data corresponding to the called calloumn.
   return $data[$index];
 }
 
+/**
+ * Returns the value from a xml metadata
+ */
+function transformers_actions_metadata_wrapper_xml_getter($data, $options, $name, $data_type, $info) {
+  $xml_info = $info['parent']->info();
+
+  $return = NULL;
+  foreach ($xml_info['property info'] as $key => $info) {
+    if ($key === $name) {
+      switch ($info['metatype']) {
+        case 'Attribute':
+          $return = $data->attributes->getNamedItem($name)->value;
+          break;
+        case 'TextContent':
+          $return = trim($data->textContent);
+          break;
+      }
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * UI for metadata
+ */
 class TransformersActionsMetadataUI extends RulesDataUIText {
   /**
    * Returns an array of options to use with a select for the items specified
@@ -63,3 +90,15 @@ class TransformersActionsMetadataUI extends RulesDataUIText {
   public static function render($value) {
   }
 }
+
+/**
+ * DomNodeList to array
+ */
+function nodelist2array(DOMNodeList $nodelist) {
+  $array = array();
+  foreach ($nodelist as $item) {
+    $array[] = $item;
+  }
+  return $array;
+}
+
