@@ -23,12 +23,20 @@ function transformers_actions_rules_data_info() {
       'label' => t('XML'),
       'wrap' => TRUE,
     ),
-    'xml_data' => array(
+    'xml_document' => array(
+      'label' => t('XML'),
+      'wrap' => TRUE,
+      'parent' => 'xml',
+    ),
+    'xml_element' => array(
       'label' => t('XML Data'),
       'wrap' => TRUE,
+      'parent' => 'xml',
       'property defaults' => array(
         'getter callback' => 'transformers_actions_metadata_wrapper_xml_getter',
       ),
+      // The variable has to provide the correct property info.
+      'property info' => array(),
     ),
     'metadata' => array(
       'label' => t('Metadata'),
@@ -67,6 +75,7 @@ function transformers_actions_rules_action_info() {
           'restriction' => 'input',
           'label' => t('Metadata for CSV'),
           'description' => t('Describe the columns for CSV'),
+          'metatypes' => FALSE,
         ),
       ),
       'provides' => array(
@@ -118,8 +127,8 @@ function transformers_actions_rules_action_info() {
         ),
       ),
       'provides' => array(
-        'xml' => array(
-          'type' => 'xml',
+        'xml_document' => array(
+          'type' => 'xml_document',
           'label' => t('XML document'),
         ),
       ),
@@ -131,12 +140,12 @@ function transformers_actions_rules_action_info() {
       'parameter' => array(
         'xml' => array(
           'type' => 'xml',
-          'label' => t('XML document'),
+          'label' => t('XML document or element'),
         ),
       ),
       'provides' => array(
         'xml_text' => array(
-          'type' => 'xml',
+          'type' => 'text',
           'label' => t('XML text'),
           'description' => t('XML data as text'),
         ),
@@ -147,8 +156,8 @@ function transformers_actions_rules_action_info() {
     'xpath_evalution' => array(
       'label' => t('Evaluate XPath'),
       'parameter' => array(
-        'xml' => array(
-          'type' => 'xml',
+        'xml_document' => array(
+          'type' => 'xml_document',
           'label' => t('XML document'),
         ),
         'xpath' => array(
@@ -159,13 +168,14 @@ function transformers_actions_rules_action_info() {
           'type' => 'metadata',
           'restriction' => 'input',
           'label' => t('Metadata for XML'),
-          'description' => t('Describe attributes or nodes, attributes starting with an @.'),
+          'description' => t('Describe attributes or nodes, attribute.'),
+          'metatypes' => TRUE,
         ),
       ),
       'provides' => array(
         'xml_list' => array(
-          'type' => 'list<xml_data>',
-          'label' => t('List of xml nodes'),
+          'type' => 'list<xml_element>',
+          'label' => t('List of xml elements'),
         ),
       ),
       'base' => 'transformers_actions_xpath_evalution',
@@ -233,23 +243,57 @@ function transformers_actions_csv_export($csv, $delimiter = ',', $skip_first_lin
 function transformers_actions_xml_import($xml_text) {
   $doc = new DOMDocument();
   $doc->loadXML($xml_text);
-  return array('xml' => $doc);
+  return array('xml_document' => $doc);
 }
 
 /**
  * Action: Export XML data to a string.
  */
 function transformers_actions_xml_export($xml) {
-  $string = $xml->saveXML();
+  if (get_class($xml) == 'DOMNode') {
+    $doc = new DOMDocument();
+    $doc->appendChild($xml);
+  }
+  elseif (get_class($xml) == 'DOMDocument') {
+    $doc = $xml;
+  }
+  else {
+    // TODO: throw error.
+  }
+  $string = $doc->saveXML();
   return array('xml_text' => $string);
 }
 
 /**
  * Action: Evaluate XPath
  */
-function transformers_actions_xpath_evalution($xml, $xpath) {
-  $xpath_obj = new DOMXPath($xml);
+function transformers_actions_xpath_evalution($xml_document, $xpath) {
+  $xpath_obj = new DOMXPath($xml_document);
   $node_list = $xpath_obj->query($xpath);
   $list = nodelist2array($node_list);
+
   return array('xml_list' => $list);
+}
+
+/**
+ * Process callback for xpath_evaluation.
+ */
+function transformers_actions_xpath_evalution_process(RulesPlugin $element) {
+  $property_info = array();
+  foreach ($element->settings['metadata'] as $i => $entry) {
+    if ($entry['type'] !== '0') {
+      $property_info[$entry['label']] = array(
+        'type' => $entry['type'],
+        'label' => $entry['label'],
+        'metatype' => $entry['metatype'],
+      );
+    }
+  };
+  $element_info['provides']['xml_list'] = array(
+    'property defaults' => array(
+      'getter callback' => 'transformers_actions_metadata_wrapper_xml_getter',
+    ),
+  );
+  $element_info['provides']['xml_list']['property info'] = $property_info;
+  $element->alterInfo($element_info);
 }

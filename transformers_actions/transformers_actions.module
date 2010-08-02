@@ -26,7 +26,6 @@ function transformers_actions_metadata_wrapper_csv_getter($data, $options, $name
  */
 function transformers_actions_metadata_wrapper_xml_getter($data, $options, $name, $data_type, $info) {
   $xml_info = $info['parent']->info();
-
   $return = NULL;
   foreach ($xml_info['property info'] as $key => $info) {
     if ($key === $name) {
@@ -34,7 +33,7 @@ function transformers_actions_metadata_wrapper_xml_getter($data, $options, $name
         case 'Attribute':
           $return = $data->attributes->getNamedItem($name)->value;
           break;
-        case 'TextContent':
+        case 'Text':
           $return = trim($data->textContent);
           break;
       }
@@ -63,10 +62,7 @@ class TransformersActionsMetadataUI extends RulesDataUIText {
   }
 
   public static function inputForm($name, $info, $settings, RulesPlugin $element) {
-    //$form = parent::inputForm($name, $info, $settings, $element);
-    //$form[$name] = array();
     $options = array_map('drupal_ucfirst', TransformersActionsMetadataUI::getOptions('data_info'));
-
     for ($i=0; $i<=5; $i++) {
       $form[$name][$i] = array(
         '#type' => 'fieldset',
@@ -77,12 +73,20 @@ class TransformersActionsMetadataUI extends RulesDataUIText {
         '#type' => 'select',
         '#title' => t('Data type'),
         '#options' => array(0 => '--') + $options,
-        '#default_value' => 0,
+        '#default_value' => (isset($settings[$name][$i]['type']) ? $settings[$name][$i]['type'] : 0),
       );
       $form[$name][$i]['label'] = array(
         '#type' => 'textfield',
         '#title' => t('Label'),
+        '#default_value' => (isset($settings[$name][$i]['label']) ? $settings[$name][$i]['label'] : ''),
       );
+      if (isset($info['metatypes']) && $info['metatypes'] == TRUE) {
+        $form[$name][$i]['metatype'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Metatype'),
+          '#default_value' => (isset($settings[$name][$i]['metatype']) ? $settings[$name][$i]['metatype'] : ''),
+        );
+      }
     }
     return $form;
   }
@@ -90,6 +94,8 @@ class TransformersActionsMetadataUI extends RulesDataUIText {
   public static function render($value) {
   }
 }
+
+
 
 /**
  * DomNodeList to array
