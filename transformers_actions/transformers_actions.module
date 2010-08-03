@@ -3,48 +3,48 @@
 
 
 /**
- * @file Transformers Actions
+ * @file Transformers Actions.
  */
 
 /**
- * Returns the value from the called column from csv data.
+ * This is a getter callback for the value from csv metadata.
  * The functions returns the entry corresponding to the called column, which
  * is only metadata.
  * So if for example <em>csv:1:firstColumn</em> is called it will search for
  * the data for the collumn <em>firstColumn</em>.
  */
 function transformers_actions_metadata_wrapper_csv_getter($data, $options, $name, $data_type, $info) {
-  // This
-  $csv_info = $info['parent']->info();
-  $column_key = array_keys($csv_info['property info']);
-  $index = array_search($name, $column_key, TRUE);
-  return $data[$index];
+  if (entity_metadata_verify_data_type($data, $data_type)) {
+    $csv_info = $info['parent']->info();
+    $column_key = array_keys($csv_info['property info']);
+    $index = array_search($name, $column_key, TRUE);
+    return $data[$index];
+  }
 }
 
 /**
- * Returns the value from a xml metadata
+ * This is a getter callback for the value from a xml metadata.
  */
 function transformers_actions_metadata_wrapper_xml_getter($data, $options, $name, $data_type, $info) {
-  $xml_info = $info['parent']->info();
-  $return = NULL;
-  foreach ($xml_info['property info'] as $key => $info) {
-    if ($key === $name) {
-      switch ($info['metatype']) {
-        case 'Attribute':
-          $return = $data->attributes->getNamedItem($name)->value;
-          break;
-        case 'Text':
-          $return = trim($data->textContent);
-          break;
-      }
+  if (entity_metadata_verify_data_type($data, $data_type)) {
+    $xml_info = $info['parent']->info();
+    $return = NULL;
+    $xml_info['property info'][$name]['metatype'];
+
+    switch ($xml_info['property info'][$name]['metatype']) {
+      case 'Attribute':
+        $return = $data->attributes->getNamedItem($name)->value;
+        break;
+      case 'Text':
+        $return = trim($data->textContent);
+        break;
     }
   }
-
   return $return;
 }
 
 /**
- * UI for metadata
+ * UI for metadata.
  */
 class TransformersActionsMetadataUI extends RulesDataUIText {
   /**
@@ -61,9 +61,16 @@ class TransformersActionsMetadataUI extends RulesDataUIText {
     return $sorted_data;
   }
 
+  /**
+   * Overides
+   * metatypes: This additional flag allows you show an third text input form
+   * where users can define where to get the data from. If you have a xml data
+   * structure, for example, the wrapper function needs to know where to get
+   * the data from(attribute or text node).
+   */
   public static function inputForm($name, $info, $settings, RulesPlugin $element) {
-    $options = array_map('drupal_ucfirst', TransformersActionsMetadataUI::getOptions('data_info'));
-    for ($i=0; $i<=5; $i++) {
+    $options = RulesPluginUI::getOptions('data_info');
+    for ($i=0; $i<=2; $i++) {
       $form[$name][$i] = array(
         '#type' => 'fieldset',
         '#title' => t('@index. column', array('@index' => $i+1)),
@@ -80,7 +87,7 @@ class TransformersActionsMetadataUI extends RulesDataUIText {
         '#title' => t('Label'),
         '#default_value' => (isset($settings[$name][$i]['label']) ? $settings[$name][$i]['label'] : ''),
       );
-      if (isset($info['metatypes']) && $info['metatypes'] == TRUE) {
+      if (!empty($info['metatypes'])) {
         $form[$name][$i]['metatype'] = array(
           '#type' => 'textfield',
           '#title' => t('Metatype'),
@@ -98,9 +105,9 @@ class TransformersActionsMetadataUI extends RulesDataUIText {
 
 
 /**
- * DomNodeList to array
+ * Converts a DomNodeList to an array.
  */
-function nodelist2array(DOMNodeList $nodelist) {
+function transformers_actions_nodelist2array(DOMNodeList $nodelist) {
   $array = array();
   foreach ($nodelist as $item) {
     $array[] = $item;

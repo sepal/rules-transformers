@@ -265,12 +265,12 @@ function transformers_actions_xml_export($xml) {
 }
 
 /**
- * Action: Evaluate XPath
+ * Action: Evaluate XPath.
  */
 function transformers_actions_xpath_evalution($xml_document, $xpath) {
   $xpath_obj = new DOMXPath($xml_document);
   $node_list = $xpath_obj->query($xpath);
-  $list = nodelist2array($node_list);
+  $list = transformers_actions_nodelist2array($node_list);
 
   return array('xml_list' => $list);
 }

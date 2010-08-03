@@ -172,7 +172,7 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     $xpath_obj = new DOMXPath($dom);
     $xpath = '/beatboxing/artist';
     $node_list = $xpath_obj->query($xpath);
-    $list = nodelist2array($node_list);
+    $list = transformers_actions_nodelist2array($node_list);
 
     $info = array(
       'type' => 'list<xml_element>',
