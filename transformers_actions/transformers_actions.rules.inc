@@ -289,11 +289,6 @@ function transformers_actions_xpath_evalution_process(RulesPlugin $element) {
       );
     }
   };
-  $element_info['provides']['xml_list'] = array(
-    'property defaults' => array(
-      'getter callback' => 'transformers_actions_metadata_wrapper_xml_getter',
-    ),
-  );
   $element_info['provides']['xml_list']['property info'] = $property_info;
   $element->alterInfo($element_info);
 }

@@ -1,2 +1,48 @@
 <?php
 // $Id: transformers_pipelines.module,v 1.1.2.1 2010/06/14 14:15:39 sgilits Exp $
+
+/**
+ * @file Pipeline compononent for actions
+ */
+
+//define('TRANSFORMERS_PIPELINE_PATH', 'admin/config/workflow/transformers');
+//define('TRANSFORMERS_PIPELINE_RULE_PATH', RULES_UI_PATH . '/transformers');
+
+/**
+ * Implements hook_library().
+ */
+function transformers_pipelines_library() {
+  // jsPlumb.
+  $libraries['jsplumb'] = array(
+    'title' => 'jsPlumb',
+    'website' => 'http://code.google.com/p/jsplumb/',
+    'version' => '1.2.1',
+    'js' => array(
+      drupal_get_path('module', 'transformers_pipelines') . '/jquery.jsPlumb-1.2.1-all.js' => array(),
+    ),
+    'dependencies' => array(
+      array('system', 'jquery'),
+      array('system', 'ui'),
+      array('system', 'ui.draggable'),
+      array('system', 'ui.droppable'),
+    ),
+  );
+
+  return $libraries;
+}
+
+function transformers_pipelines_rules_plugin_info() {
+  return array(
+    'transformer' => array(
+      'label' => t('Transformer'),
+      'class' => 'Transformer',
+      'component' => TRUE,
+      'embeddable' => FALSE,
+      'extenders' => array(
+        'RulesPluginUIInterface' => array(
+          'class' => 'TransformersPipelineUI',
+        ),
+      ),
+    ),
+  );
+}
