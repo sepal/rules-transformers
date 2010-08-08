@@ -16,9 +16,11 @@ function transformers_pipelines_library() {
   $libraries['jsplumb'] = array(
     'title' => 'jsPlumb',
     'website' => 'http://code.google.com/p/jsplumb/',
-    'version' => '1.2.1',
+    'version' => '1.2.2',
     'js' => array(
-      drupal_get_path('module', 'transformers_pipelines') . '/jquery.jsPlumb-1.2.1-all.js' => array(),
+      drupal_get_path('module', 'transformers_pipelines') . '/jsPlumb-1.2.2-RC1.js' => array(),
+      drupal_get_path('module', 'transformers_pipelines') . '/jsPlumb-defaults-1.2.2-RC1.js' => array(),
+      drupal_get_path('module', 'transformers_pipelines') . '/jquery.jsPlumb-1.2.2-RC1.js' => array(),
     ),
     'dependencies' => array(
       array('system', 'jquery'),
