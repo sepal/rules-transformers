@@ -40,27 +40,29 @@ class TransformersPipelineUI extends RulesActionContainerUI {
     // Recurse over all element childrens or use the provided iterator.
     $iterator = isset($iterator) ? $iterator : new RecursiveIteratorIterator($this->element, RecursiveIteratorIterator::SELF_FIRST);
     $root_depth = $this->element->depth();
-    $form['elements'] = array(
+    $form['elements'] = array();
+    $form['elements']['panel'] = array(
       '#prefix' => '<div id="transformers_panel">',
       '#suffix' => '</div>',
     );
-
     $js_vars = array();
+    $js_vars['transformers_pipelines']['rule'] = $this->element->name;
+
     foreach ($iterator as $key => $child) {
       $id = $child->elementId();
 
       $element_id = 'transformers_element_' . $id;
-      $form['elements'][$id] = array(
+      $form['elements']['panel'][$id] = array(
         '#prefix' => '<div class="transformers_action" id ="' . $element_id . '">',
         '#suffix' => '</div>',
       );
 
-      $form['elements'][$id]['head'] = array(
+      $form['elements']['panel'][$id]['head'] = array(
         '#prefix' => '<div class="transformers_action_head">',
         '#suffix' => '</div>',
       );
 
-      $form['elements'][$id]['head']['label'] = array(
+      $form['elements']['panel'][$id]['head']['label'] = array(
         '#type' => 'link',
         '#title' => $child->label(),
         '#href' => RulesPluginUI::path($child->root()->name, 'edit', $child),
@@ -68,65 +70,66 @@ class TransformersPipelineUI extends RulesActionContainerUI {
         '#suffix' => '</span>',
       );
 
-      $form['elements'][$id]['head']['icons'] = array(
+      $form['elements']['panel'][$id]['head']['icons'] = array(
         '#prefix' => '<span class="transformers_icons">',
         '#suffix' => '</span>',
       );
 
-      $form['elements'][$id]['head']['icons']['delete'] = array(
+      $form['elements']['panel'][$id]['head']['icons']['delete'] = array(
         '#type' => 'link',
         '#title' => 'X',
         '#href' => RulesPluginUI::path($child->root()->name, 'delete', $child),
       );
 
-      $form['elements'][$id]['anchors'] = array(
+      $form['elements']['panel'][$id]['anchors'] = array(
         '#prefix' => '<div>',
         '#suffix' => '</div>',
       );
-      $form['elements'][$id]['anchors']['in'] = array(
+      $form['elements']['panel'][$id]['anchors']['in'] = array(
         '#prefix' => '<ul class="transformers_inputs">',
         '#suffix' => '</ul>',
       );
 
-      $form['elements'][$id]['anchors']['out'] = array(
+      $form['elements']['panel'][$id]['anchors']['out'] = array(
         '#prefix' => '<ul class="transformers_outputs">',
         '#suffix' => '</ul>',
       );
 
-      foreach ($child->parameterInfo() as $key => $param) {
+      foreach ($child->pluginParameterInfo() as $key => $param) {
         $input_id = 'transformers_' . $key;
-        $form['elements'][$id]['anchors']['in'][$key] = array(
+        $form['elements']['panel'][$id]['anchors']['in'][$key] = array(
           '#prefix' => '<li class="transformers_anchor transformers_inputs"><div id="' . $input_id . '">',
           '#markup' => $param['label'],
           '#suffix' => '</div></li>',
         );
-        $js_vars['transformers_pipelines'][$id]['parameter'][$key]['target'] = $input_id;
-        $js_vars['transformers_pipelines'][$id]['parameter'][$key]['scope'] = $param['type'];
+        $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['target'] = $key;
+        $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['scope'] = $param['type'];
 
         $settings = $child->settings;
         if (array_key_exists($key . ':select', $settings)) {
-          $js_vars['transformers_pipelines'][$id]['parameter'][$key]['source'] = 'transformers_' . $settings[$key . ':select'];
+          $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['source'] = $settings[$key . ':select'];
         }
       }
 
+      $variables = $child->pluginProvidesVariables();
       foreach ($child->providesVariables() as $key => $var) {
+        $info = $variables[$var['source name']];
         $output_id =  'transformers_' . $key;
-        $form['elements'][$id]['anchors']['out'][$key] = array(
+        $form['elements']['panel'][$id]['anchors']['out'][$key] = array(
           '#prefix' => '<li class="transformers_anchor transformers_outputs"><div  id="' . $output_id . '">',
-          '#markup' => $var['label'],
+          '#markup' => $info['label'],
           '#suffix' => '</div></li>',
         );
-        $js_vars['transformers_pipelines'][$id]['provides'][$key]['source'] = $output_id;
-        $js_vars['transformers_pipelines'][$id]['provides'][$key]['scope'] = $param['type'];
+        $js_vars['transformers_pipelines']['elements'][$id]['provides'][$key]['source'] = $key;
+        $js_vars['transformers_pipelines']['elements'][$id]['provides'][$key]['scope'] = $param['type'];
       }
-
-      $js_vars['transformers_pipelines'][$id]['element_id'] = $element_id;
+      $js_vars['transformers_pipelines']['elements'][$id]['element_id'] = $id;
     }
 
 
     drupal_add_js($js_vars, 'setting');
-
-    $form['links'] = array(
+    $add_links['add_action']['href'] = str_replace("workflow/rules", "workflow/transformers", $add_links['add_action']['href']);
+    $form['elements']['links'] = array(
       '#prefix' => '<div id="transformers_add_links">',
       '#markup' => l(t($add_links['add_action']['title']), $add_links['add_action']['href']),
       '#suffix' => '</div>',

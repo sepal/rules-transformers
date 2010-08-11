@@ -21,6 +21,8 @@
   float: left;
   z-index:20;
 }
+._jsPlumb_endpoint { z-index:50; }
+._jsPlumb_connector { z-index:1; }
 
 .transformers_action_head {
   border-bottom: 1px solid #AAAAAA;
