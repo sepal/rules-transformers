@@ -217,8 +217,9 @@ class TransformersActionsTestCase extends DrupalWebTestCase {
     );
 
     $rule = rule();
-    $rule->action('csv_import', array('csv_text' => $string, 'delimiter' => ',', 'skip_first_line' => TRUE, 'metadata' => $metadata));
-    $rule->action('drupal_message', array('message:select' => 'csv:1:artist'));
+    $rule->action('csv_import', array('csv_text' => $string, 'delimiter' => ',', 'skip_first_line' => TRUE));
+    $rule->action('annotate_csv_line', array('csv_line:select' => 'csv:1', 'metadata' => $metadata));
+    $rule->action('drupal_message', array('message:select' => 'annotated_csv_line:artist'));
 
     $rule->integrityCheck();
     $rule->execute();

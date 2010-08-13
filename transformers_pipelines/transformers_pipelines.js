@@ -1,7 +1,8 @@
 // $Id$
 (function ($) {
 
-var transformers_endpoints = new Array();
+var transformers_endpointsIn = new Array();
+var transformers_endpointsOut = new Array();
 var transformers_canvasIn = new Array();
 var transformers_canvasOut = new Array();
 var transformers_currently_dragging = null;
@@ -30,72 +31,93 @@ Drupal.behaviors.transformers_pipelines = {
     };
     
     var endPointOut = {
-        endpoint:new jsPlumb.Endpoints.Rectangle(),
-        style:{ width:25, height:12, fillStyle:exampleColor },
-        connectorStyle : { strokeStyle:"#666" },
-        connector: new jsPlumb.Connectors.Bezier(125),
-        maxConnections: 5, // maxConnections: -1 would set it to infinity, but is currently broken in jsPlumb
-        dragOptions: {
-          start: function(e, ui) {
-            transformers_currently_dragging = transformers_canvasOut[$(this).attr('id')];
-          }
-        },
-        isTarget:false,
-        isSource:true
+      endpoint:new jsPlumb.Endpoints.Rectangle(),
+      style:{ width:25, height:12, fillStyle:exampleColor },
+      connectorStyle : { strokeStyle:"#666" },
+      connector: new jsPlumb.Connectors.Bezier(125),
+      maxConnections: 5, // maxConnections: -1 would set it to infinity, but is currently broken in jsPlumb
+      dragOptions: {
+        start: function(e, ui) {
+          transformers_currently_dragging = transformers_canvasOut[$(this).attr('id')];
+        }
+      },
+      isTarget:false,
+      isSource:true
     };
     
     transformers_current_rule = Drupal.settings.transformers_pipelines.rule;
-    elementlist = Drupal.settings.transformers_pipelines.elements;
     
-    for (var key in elementlist) {
-      if (elementlist.hasOwnProperty(key)) {
-        element = elementlist[key];
-        transformers_pipelines_generate_endpoints(element.element_id, element.provides, endPointOut);
-        transformers_pipelines_generate_endpoints(element.element_id, element.parameter, endPointIn);
+    endPointVars = endPointOut;
+    var variablelist = Drupal.settings.transformers_pipelines.variables;
+    for (var key in variablelist) {
+      variable_id = variablelist[key].source;
+      //endPointVars.scope = variablelist[key].scope;
+      transformers_endpointsOut[variablelist[key].source] = jsPlumb.addEndpoint('transformers_variables_' + variable_id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(1, 0.5, 1, 0) }, endPointVars));
+      transformers_canvasOut[$(transformers_endpointsOut[variablelist[key].source].canvas).attr('id')] = {
+        source: variablelist[key].source,
+        connected: false,
+        source_element_id: variable_id
+      };
+    }
 
-        for (var key in element.parameter) {
-          if (element.parameter.hasOwnProperty(key) && element.parameter[key].source != null) {
-            jsPlumb.connect({
-              sourceEndpoint:transformers_endpoints[element.parameter[key].source],
-              targetEndpoint:transformers_endpoints[element.parameter[key].target]
-            });
-            transformers_canvasIn[$(transformers_endpoints[element.parameter[key].target].canvas).attr('id')].connected = true;
-            transformers_canvasIn[$(transformers_endpoints[element.parameter[key].target].canvas).attr('id')].source = element.parameter[key].source;
-            transformers_canvasOut[$(transformers_endpoints[element.parameter[key].source].canvas).attr('id')].connected = true;
-            transformers_canvasOut[$(transformers_endpoints[element.parameter[key].source].canvas).attr('id')].target = element.parameter[key].target;
-          }
+    endPointSplitter = endPointIn;
+    endPointSplitter.dropOptions.drop = transformers_pipelines_drop_splitter;
+    var splitterlist = Drupal.settings.transformers_pipelines.splitter;
+    for (var key in splitterlist) {
+      element = splitterlist[key];
+      //console.log(splitterlist[key].id);
+      transformers_pipelines_generate_endpoints(element.element_id, element.parameter, endPointSplitter);
+      //transformers_endpointsOut[splitterlist[key].id] = jsPlumb.addEndpoint('transformers_splitter_' + splitterlist[key].id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(1, 0.5, 1, 0) }, endPointSplitter));
+    }
+    
+    elementlist = Drupal.settings.transformers_pipelines.elements;
+    for (var key in elementlist) {
+      element = elementlist[key];
+      transformers_pipelines_generate_endpoints(element.element_id, element.provides, endPointOut);
+      transformers_pipelines_generate_endpoints(element.element_id, element.parameter, endPointIn);
+
+      for (var key in element.parameter) {
+        if (element.parameter[key].source != null) {
+          jsPlumb.connect({
+            sourceEndpoint:transformers_endpointsOut[element.parameter[key].source],
+            targetEndpoint:transformers_endpointsIn[element.parameter[key].target]
+          });
+          transformers_canvasIn[$(transformers_endpointsIn[element.parameter[key].target].canvas).attr('id')].connected = true;
+          transformers_canvasIn[$(transformers_endpointsIn[element.parameter[key].target].canvas).attr('id')].source = element.parameter[key].source;
+          transformers_canvasOut[$(transformers_endpointsOut[element.parameter[key].source].canvas).attr('id')].connected = true;
+          transformers_canvasOut[$(transformers_endpointsOut[element.parameter[key].source].canvas).attr('id')].target = element.parameter[key].target;
         }
       }
     }
   }
 };
 
-transformers_pipelines_generate_endpoints = function(elementId, endPoints, endPointOptions) {
-  element_height = $("#transformers_element_" + elementId).height();
-  element_width = $("#transformers_element_" + elementId).width();
-  for (var key in endPoints) {
-    if (endPoints.hasOwnProperty(key)) {
-      endPointOptions.scope = endPoints[key].scope;
-      if (endPointOptions.isTarget && !endPointOptions.isSource) {
-        var top = $("#transformers_" + endPoints[key].target).position().top;
-        transformers_endpoints[endPoints[key].target] = jsPlumb.addEndpoint("transformers_element_" + elementId, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(0, top/element_height + 0.15, -1, 0) }, endPointOptions));
-        transformers_canvasIn[$(transformers_endpoints[endPoints[key].target].canvas).attr('id')] = {
-          target: endPoints[key].target,
-          connected: false,
-          element_id: elementId
-        };
-        $(transformers_endpoints[endPoints[key].target].canvas).click(transformers_pipelines_in_click);
-      }
-      else {
-        var top = $("#transformers_" + endPoints[key].source).position().top;
-        transformers_endpoints[endPoints[key].source] = jsPlumb.addEndpoint("transformers_element_" + elementId, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(1, top/element_height + 0.15, 1, 0) }, endPointOptions));
-        transformers_canvasOut[$(transformers_endpoints[endPoints[key].source].canvas).attr('id')] = {
-          source: endPoints[key].source,
-          connected: false,
-          element_id: elementId
-        };
-      }
-    };
+transformers_pipelines_generate_endpoints = function(elementId, endPointsConfig, endPointOptions) {
+  $element_html_id = "transformers_element_" + elementId;
+  element_height = $("#" + $element_html_id).height();
+  element_width = $("#" + $element_html_id).width();
+  for (var key in endPointsConfig) {
+    //endPointOptions.scope = endPointsConfig[key].scope;
+    if (endPointOptions.isTarget && !endPointOptions.isSource) {
+      var top = $("#" + $element_html_id + '_' + endPointsConfig[key].target).position().top;
+      transformers_endpointsIn[endPointsConfig[key].target] = jsPlumb.addEndpoint($element_html_id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(0, top/element_height + 0.15, -1, 0) }, endPointOptions));
+
+      transformers_canvasIn[$(transformers_endpointsIn[endPointsConfig[key].target].canvas).attr('id')] = {
+        target: endPointsConfig[key].target,
+        connected: false,
+        target_element_id: elementId
+      };
+      $(transformers_endpointsIn[endPointsConfig[key].target].canvas).click(transformers_pipelines_in_click);
+    }
+    else {
+      var top = $("#" + $element_html_id + '_' + endPointsConfig[key].source).position().top;
+      transformers_endpointsOut[endPointsConfig[key].source] = jsPlumb.addEndpoint($element_html_id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(1, top/element_height + 0.15, 1, 0) }, endPointOptions));
+      transformers_canvasOut[$(transformers_endpointsOut[endPointsConfig[key].source].canvas).attr('id')] = {
+        source: endPointsConfig[key].source,
+        connected: false,
+        source_element_id: elementId
+      };
+    }
   }
 }
 
@@ -110,25 +132,55 @@ transformers_pipelines_in_click = function() {
 transformers_pipelines_drop = function(e, ui) {
   target = transformers_canvasIn[$(this).attr('id')];
   source = transformers_currently_dragging;
+  target.source_element_id = source.source_element_id;
 
-  transformers_canvasIn[$(this).attr('id')].connected = true;
-  transformers_canvasIn[$(this).attr('id')].source = source.source;
-
-  var url = Drupal.settings.basePath + 'admin/config/workflow/transformers/config/' + transformers_current_rule + '/connect';
-  $.ajax({
-    url: location.protocol + '//' + location.host + url,
-    type: 'POST',
-    dataType: 'json',
-    data:{
-      'transformers_target_connection': target
-    },
-    success: function(data) {
-      if (data.result == false) {
-        alert(data.error.message);
+  if (!transformers_canvasIn[$(this).attr('id')].connected) {
+    transformers_canvasIn[$(this).attr('id')].connected = true;
+    transformers_canvasIn[$(this).attr('id')].source = source.source;
+  
+    var url = Drupal.settings.basePath + 'admin/config/workflow/transformers/config/' + transformers_current_rule + '/connect';
+    $.ajax({
+      url: location.protocol + '//' + location.host + url,
+      type: 'POST',
+      dataType: 'json',
+      data:{
+        'transformers_target_connection': target
+      },
+      success: function(data) {
+        if (data.result == false) {
+          alert(data.error.message);
+        }
       }
-    }
-  });
+    });
+  }
+}
 
+transformers_pipelines_drop_splitter = function(e, ui) {
+  target = transformers_canvasIn[$(this).attr('id')];
+  source = transformers_currently_dragging;
+  target.source_element_id = source.source_element_id;
+
+  if (!transformers_canvasIn[$(this).attr('id')].connected) {
+    transformers_canvasIn[$(this).attr('id')].connected = true;
+    transformers_canvasIn[$(this).attr('id')].source = source.source;
+    console.log(target);
+  
+    var url = Drupal.settings.basePath + 'admin/config/workflow/transformers/config/' + transformers_current_rule + '/splitter/connect';
+    $.ajax({
+      url: location.protocol + '//' + location.host + url,
+      type: 'POST',
+      dataType: 'json',
+      data:{
+        'transformers_target_connection': target
+      },
+      success: function(data) {
+        if (data.result == false) {
+          alert(data.error.message);
+        }
+      }
+    });
+  }
+  
 }
 
 })(jQuery);

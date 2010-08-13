@@ -24,7 +24,7 @@ function transformers_actions_rules_data_info() {
       'wrap' => TRUE,
     ),
     'xml_document' => array(
-      'label' => t('XML'),
+      'label' => t('XML Document'),
       'wrap' => TRUE,
       'parent' => 'xml',
     ),
@@ -70,13 +70,6 @@ function transformers_actions_rules_action_info() {
           'optional' => TRUE,
           'default value' => FALSE,
         ),
-        'metadata' => array(
-          'type' => 'metadata',
-          'restriction' => 'input',
-          'label' => t('Metadata for CSV'),
-          'description' => t('Describe the columns for CSV'),
-          'metatypes' => FALSE,
-        ),
       ),
       'provides' => array(
         'csv' => array(
@@ -115,6 +108,30 @@ function transformers_actions_rules_action_info() {
         ),
       ),
       'base' => 'transformers_actions_csv_export',
+      'group' => t('Transformers'),
+    ),
+    'annotate_csv_line' => array(
+      'label' => t('Annotate a CSV Line'),
+      'parameter' => array(
+        'csv_line' => array(
+          'type' => 'csv_line',
+          'label' => t('CSV line'),
+        ),
+        'metadata' => array(
+          'type' => 'metadata',
+          'restriction' => 'input',
+          'label' => t('Description for CSV'),
+          'description' => t('Describe the columns for CSV'),
+          'metatypes' => FALSE,
+        ),
+      ),
+      'provides' => array(
+        'annotated_csv_line' => array(
+          'type' => 'csv_line',
+          'label' => t('CSV data'),
+        ),
+      ),
+      'base' => 'transformers_actions_annotate_csv',
       'group' => t('Transformers'),
     ),
     'xml_import' => array(
@@ -164,13 +181,6 @@ function transformers_actions_rules_action_info() {
           'type' => 'text',
           'label' => t('XPath expression'),
         ),
-        'metadata' => array(
-          'type' => 'metadata',
-          'restriction' => 'input',
-          'label' => t('Metadata for XML'),
-          'description' => t('Describe attributes or nodes, attribute.'),
-          'metatypes' => TRUE,
-        ),
       ),
       'provides' => array(
         'xml_list' => array(
@@ -179,6 +189,30 @@ function transformers_actions_rules_action_info() {
         ),
       ),
       'base' => 'transformers_actions_xpath_evalution',
+      'group' => t('Transformers'),
+    ),
+    'annotate_xml_element' => array(
+      'label' => t('Annotate a XML Element'),
+      'parameter' => array(
+        'xml_element' => array(
+          'type' => 'xml_element',
+          'label' => t('XML element'),
+        ),
+        'metadata' => array(
+          'type' => 'metadata',
+          'restriction' => 'input',
+          'label' => t('Description for XML'),
+          'description' => t('Describe attributes or nodes, attribute.'),
+          'metatypes' => TRUE,
+        ),
+      ),
+      'provides' => array(
+        'annotatet_csv_line' => array(
+          'type' => 'xml_element',
+          'label' => t('Annotated xml element'),
+        )
+      ),
+      'base' => 'transformers_actions_annotate_xml',
       'group' => t('Transformers'),
     ),
   );
@@ -203,24 +237,27 @@ function transformers_actions_csv_import($csv_text, $delimiter = ',', $skip_firs
 }
 
 /**
- * Process callback for csv import.
+ * Action: parse CSV
  */
-function transformers_actions_csv_import_process(RulesPlugin $element) {
+function transformers_actions_annotate_csv($csv_line, $metadata, $settings, $state) {
+
+  return array('annotated_csv_line' => $csv_line);
+}
+
+/**
+ * Assertion callback for parse CSV.
+ */
+function transformers_actions_annotate_csv_process(RulesPlugin $element) {
   $property_info = array();
   foreach ($element->settings['metadata'] as $i => $column) {
-    if ($column['type'] != '0') {
+    if ($column['type']) {
       $property_info[$column['label']] = array(
         'type' => $column['type'],
         'label' => $column['label'],
       );
     }
   };
-  $element_info['provides']['csv'] = array(
-    'property defaults' => array(
-      'getter callback' => 'transformers_actions_metadata_wrapper_csv_getter',
-    ),
-  );
-  $element_info['provides']['csv']['property info'] = $property_info;
+  $element_info['provides']['annotated_csv_line']['property info'] = $property_info;
   $element->alterInfo($element_info);
 }
 
@@ -276,9 +313,17 @@ function transformers_actions_xpath_evalution($xml_document, $xpath) {
 }
 
 /**
- * Process callback for xpath_evaluation.
+ *
+ * Action: Parse XML Eelment
  */
-function transformers_actions_xpath_evalution_process(RulesPlugin $element) {
+function transformers_actions_annotate_xml($xml_element, $settings, $state) {
+  return array('annotated_xml_element' => transformers_actions_annotate_xml);
+}
+
+/**
+ * Assertion callback for parse_xml
+ */
+function transformers_actions_annotate_xml_process(RulesPlugin $element) {
   $property_info = array();
   foreach ($element->settings['metadata'] as $i => $entry) {
     if ($entry['type'] !== '0') {
@@ -289,6 +334,6 @@ function transformers_actions_xpath_evalution_process(RulesPlugin $element) {
       );
     }
   };
-  $element_info['provides']['xml_list']['property info'] = $property_info;
+  $element_info['provides']['annotated_xml_element']['property info'] = $property_info;
   $element->alterInfo($element_info);
 }
