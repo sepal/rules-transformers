@@ -9,6 +9,7 @@
 class Transformer extends RulesActionContainer {
 
   protected $itemName = 'transformer';
+  public $positionInfo = array();
   public $splitter = array();
 
   public function action($action) {
@@ -16,19 +17,34 @@ class Transformer extends RulesActionContainer {
   }
 
   public function __sleep() {
-    return parent::__sleep() + array('splitter' => 'splitter');
+    return parent::__sleep() + array('splitter' => 'splitter', 'positionInfo' => 'positionInfo');
   }
 
   public function addSplitter(){
     $id = uniqid();
     $this->splitter[$id] = array();
     $this->splitter[$id]['id'] = $id;
-    $this->splitter[$id]['uncofigured'] = TRUE;
+    $this->splitter[$id]['configured'] = FALSE;
     return $this->splitter[$id];
   }
 
   protected function exportChildren($key = 'Action') {
     return parent::exportChildren($key);
+  }
+
+  public function getSelectorChild($provider, $level = 0) {
+    $variables = $this->call('stateVariables', array(TRUE));
+    $result = array();
+    try {
+      $wrappers = rules_wrap_data($variables, $variables[$provider], TRUE);
+      foreach ($wrappers as $name => $data) {
+        $result[$name] = $name;
+      }
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
+    return $result;
   }
 }
 
@@ -84,8 +100,16 @@ class TransformersPipelineUI extends RulesActionContainerUI {
       $id = $child->elementId();
 
       $element_id = 'transformers_element_' . $id;
+
+      $style = '';
+      if (isset($this->element->positionInfo[$element_id])) {
+        $info = $this->element->positionInfo[$element_id];
+
+        $style = 'position:absolute;top:' . $info['position']['top'] . 'px;left:' . $info['position']['left'] . 'px;';
+      }
+
       $form['elements']['panel']['container'][$id] = array(
-        '#prefix' => '<div class="transformers_action" id ="' . $element_id . '">',
+        '#prefix' => '<div style="' . $style . '" class="transformers_action" id ="' . $element_id . '">',
         '#suffix' => '</div>',
       );
 
@@ -139,13 +163,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
 
         $settings = $child->settings;
         if (array_key_exists($key . ':select', $settings)) {
-          $parts = explode(':', $settings[$key . ':select'], 2);
-          if (count($parts) > 1) {
-
-          }
-          else {
-            $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['source'] = $settings[$key . ':select'];
-          }
+          $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['source'] = $settings[$key . ':select'];
         }
       }
 
@@ -161,14 +179,19 @@ class TransformersPipelineUI extends RulesActionContainerUI {
         $js_vars['transformers_pipelines']['elements'][$id]['provides'][$key]['source'] = $key;
         $js_vars['transformers_pipelines']['elements'][$id]['provides'][$key]['scope'] = $param['type'];
       }
-      $js_vars['transformers_pipelines']['elements'][$id]['element_id'] = $id;
+      $js_vars['transformers_pipelines']['elements'][$id]['element_id'] = $id;    $selector = 'annotated_csv_line';
     }
 
     foreach ($this->element->splitter as $key => $splitter) {
-      $this->generateSplitter($form['elements']['panel']['container'][$key], $splitter, $element_id, $this->element->name);
-      if (empty($splitter['unconfigured'])) {
-        $js_vars['transformers_pipelines']['splitter'][$key]['parameter'][$key]['target'] = 'any';
-        $js_vars['transformers_pipelines']['splitter'][$key]['element_id'] = $key;
+      $this->generateSplitter($form['elements']['panel']['container'][$key], $splitter, $element_id);
+
+      $js_vars['transformers_pipelines']['splitter'][$key]['parameter'][$key]['target'] = 'any';
+      $js_vars['transformers_pipelines']['splitter'][$key]['element_id'] = $key;
+      if (!empty($splitter['configured'])) {
+        $js_vars['transformers_pipelines']['splitter'][$key]['parameter'][$key]['source'] = $splitter['provider'];
+        foreach ($this->element->getSelectorChild($splitter['provider']) as $name) {
+          $js_vars['transformers_pipelines']['splitter'][$key]['provides'][$name]['source'] = $splitter['provider'] . ':' . $name;
+        }
       }
     }
 
@@ -195,10 +218,17 @@ class TransformersPipelineUI extends RulesActionContainerUI {
     );
   }
 
-  public function generateSplitter(&$form, $splitter, $element_id, $element_name) {
+  public function generateSplitter(&$form, $splitter, $element_id) {
     $html_id = 'transformers_element_' . $splitter['id'];
+
+      $style = '';
+      if (isset($this->element->positionInfo[$html_id])) {
+        $info = $this->element->positionInfo[$html_id];
+
+        $style = 'position:absolute;top:' . $info['position']['top'] . 'px;left:' . $info['position']['left'] . 'px;';
+      }
     $form = array(
-      '#prefix' => '<div class="transformers_action" id ="' . $html_id . '">',
+      '#prefix' => '<div style="' . $style . '" class="transformers_action" class="transformers_action" id ="' . $html_id . '">',
       '#suffix' => '</div>',
     );
 
@@ -221,7 +251,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
     $form['head']['icons']['delete'] = array(
       '#type' => 'link',
       '#title' => 'X',
-      '#href' => 'admin/config/workflow/transformers/config/' . $element_name . '/splitter/delete',
+      '#href' => 'admin/config/workflow/transformers/config/' . $this->element->name . '/splitter/delete',
     );
 
     $form['anchors'] = array(
@@ -238,7 +268,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
       '#suffix' => '</ul>',
     );
 
-    if (empty($splitter['unconfigured'])) {
+    if (empty($splitter['configured'])) {
       $html_id_any = $html_id . '_any';
       $form['anchors']['in']['any'] = array(
         '#prefix' => '<li class="transformers_anchor transformers_inputs"><div id="' . $html_id_any . '">',
@@ -247,7 +277,20 @@ class TransformersPipelineUI extends RulesActionContainerUI {
       );
     }
     else {
-      dpm('conf');
+      $html_id_any = $html_id . '_any';
+      $form['anchors']['in']['any'] = array(
+        '#prefix' => '<li class="transformers_anchor transformers_inputs"><div id="' . $html_id_any . '">',
+        '#markup' => $splitter['provider'],
+        '#suffix' => '</div></li>',
+      );
+      foreach ($this->element->getSelectorChild($splitter['provider']) as $name) {
+        $html_id_name = $html_id . '_' . $splitter['provider'] . '-' . $name;
+        $form['anchors']['out'][$name] = array(
+          '#prefix' => '<li class="transformers_anchor transformers_outputs"><div  id="' . $html_id_name . '">',
+          '#markup' => ':' . $name,
+          '#suffix' => '</div></li>',
+        );
+      }
     }
   }
 }

@@ -29,7 +29,7 @@ function transformers_actions_rules_data_info() {
       'parent' => 'xml',
     ),
     'xml_element' => array(
-      'label' => t('XML Data'),
+      'label' => t('XML Element'),
       'wrap' => TRUE,
       'parent' => 'xml',
       'property defaults' => array(
@@ -128,7 +128,7 @@ function transformers_actions_rules_action_info() {
       'provides' => array(
         'annotated_csv_line' => array(
           'type' => 'csv_line',
-          'label' => t('CSV data'),
+          'label' => t('Annotated CSV line'),
         ),
       ),
       'base' => 'transformers_actions_annotate_csv',
@@ -207,9 +207,9 @@ function transformers_actions_rules_action_info() {
         ),
       ),
       'provides' => array(
-        'annotatet_csv_line' => array(
+        'annotated_xml_element' => array(
           'type' => 'xml_element',
-          'label' => t('Annotated xml element'),
+          'label' => t('Annotated XML Element'),
         )
       ),
       'base' => 'transformers_actions_annotate_xml',
@@ -316,8 +316,8 @@ function transformers_actions_xpath_evalution($xml_document, $xpath) {
  *
  * Action: Parse XML Eelment
  */
-function transformers_actions_annotate_xml($xml_element, $settings, $state) {
-  return array('annotated_xml_element' => transformers_actions_annotate_xml);
+function transformers_actions_annotate_xml($xml_element) {
+  return array('annotated_xml_element' => $xml_element);
 }
 
 /**

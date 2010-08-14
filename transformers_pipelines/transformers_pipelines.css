@@ -7,7 +7,7 @@
 #transformers_panel {
   border: 1px solid #CCCCCC;
   height: 20em;
-  padding: 0px 5px;
+  padding: 5px 5px;
 }
 
 #transformers_variables {
@@ -64,7 +64,7 @@ div.transformers_variables {
   z-index:20;
 }
 
-._jsPlumb_endpoint { z-index:50; }
+._jsPlumb_endpoint { z-index:10; }
 ._jsPlumb_connector { z-index:1; }
 
 .transformers_action_head {

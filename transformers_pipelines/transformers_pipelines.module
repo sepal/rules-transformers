@@ -43,6 +43,13 @@ function transformers_pipelines_menu() {
     'load arguments' => array(5),
     'type' => MENU_CALLBACK,
   );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/save_position'] = array(
+    'page callback' => 'transformers_pipeline_ajax_save_position',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipeline.ajax.inc',
+  );
   $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/connect'] = array(
     'page callback' => 'transformers_pipeline_ajax_connect',
     'page arguments' => array(5),
@@ -52,6 +59,13 @@ function transformers_pipelines_menu() {
   );
   $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/disconnect'] = array(
     'page callback' => 'transformers_pipeline_ajax_disconnect',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipeline.ajax.inc',
+  );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/splitter/connect'] = array(
+    'page callback' => 'transformers_pipeline_splitter_connect',
     'page arguments' => array(5),
     'access arguments' => array('administer rules'),
     'type' => MENU_CALLBACK,
