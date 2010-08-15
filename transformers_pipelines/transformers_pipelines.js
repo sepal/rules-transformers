@@ -15,13 +15,17 @@ Drupal.behaviors.transformers_pipelines = {
     jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000, containment: '#transformers_panel', stop: transformers_pipelines_action_drag};
 
     jsPlumb.draggable($('.transformers_action'));
+    $('#transformers_panel').resizable({
+      handles: 'n, s',
+      alsoResize: '#transformers_variables',
+      minHeight: $('#transformers_panel').css('height').replace(/px/g, '')
+    });
     
-    var exampleColor = '#0074bd';
-    
+    var fillColor = '#0074bd';
     
     var endPointIn = {
       endpoint:new jsPlumb.Endpoints.Rectangle(),
-      style:{ width:25, height:12, fillStyle:exampleColor },
+      style:{ width:25, height:12, fillStyle:fillColor },
       connectorStyle : { strokeStyle:"#666" },
       dropOptions: {
         tolerance:'touch'
@@ -32,7 +36,7 @@ Drupal.behaviors.transformers_pipelines = {
     
     var endPointOut = {
       endpoint:new jsPlumb.Endpoints.Rectangle(),
-      style:{ width:25, height:12, fillStyle:exampleColor },
+      style:{ width:25, height:12, fillStyle:fillColor },
       connectorStyle : { strokeStyle:"#666" },
       connector: new jsPlumb.Connectors.Bezier(125),
       maxConnections: 5, // maxConnections: -1 would set it to infinity, but is currently broken in jsPlumb
@@ -244,7 +248,6 @@ transformers_pipelines_drop_splitter = function(e, ui) {
       }
     });
   }
-  
 }
 
 })(jQuery);

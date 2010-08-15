@@ -65,9 +65,10 @@ class TransformersPipelineUI extends RulesActionContainerUI {
       return;
     }
 
+    drupal_add_css(drupal_get_path('module', 'transformers_pipelines') . '/transformers_pipelines.css');
+    drupal_add_library('system', 'ui.resizable');
     drupal_add_library('transformers_pipelines', 'jsplumb');
     drupal_add_js(drupal_get_path('module', 'transformers_pipelines') . '/transformers_pipelines.js');
-    drupal_add_css(drupal_get_path('module', 'transformers_pipelines') . '/transformers_pipelines.css');
 
     // Since the original $form['elements'] we need to savethe add action links.
     $add_links = array_intersect_key($form['elements']['#add']['#links'], array('add_action' => 1));
