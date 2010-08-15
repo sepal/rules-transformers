@@ -1,4 +1,5 @@
 // $Id$
+
 (function ($) {
 
 var transformers_endpointsIn = new Array();
@@ -196,7 +197,7 @@ transformers_pipelines_drop = function(e, ui) {
         'transformers_target_connection': target
       },
       success: function(data) {
-        location.reload();
+        //location.reload();
       }
     });
   }
@@ -226,6 +227,20 @@ transformers_pipelines_drop_splitter = function(e, ui) {
         else {
           location.reload();
         }
+      }
+    });
+  }
+  else {
+    var url = Drupal.settings.basePath + 'admin/config/workflow/transformers/config/' + transformers_current_rule + '/splitter/disconnect';
+    $.ajax({
+      url: location.protocol + '//' + location.host + url,
+      type: 'POST',
+      dataType: 'json',
+      data:{
+        'transformers_target_connection': target
+      },
+      success: function(data) {
+        location.reload();
       }
     });
   }

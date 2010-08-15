@@ -6,5 +6,5 @@ version = VERSION
 core = 7.x
 files[] = transformers_pipelines.module
 files[] = transformers_pipelines.inc
-files[] = transformers_pipeline.ajax.inc
+files[] = transformers_pipelines.ajax.inc
 dependencies[] = rules

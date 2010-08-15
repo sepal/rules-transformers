@@ -1,4 +1,6 @@
 <?php
+// $Id$
+
 /**
  * @file Transformers Pipelines UI classes
  */
@@ -20,7 +22,7 @@ class Transformer extends RulesActionContainer {
     return parent::__sleep() + array('splitter' => 'splitter', 'positionInfo' => 'positionInfo');
   }
 
-  public function addSplitter(){
+  public function addSplitter() {
     $id = uniqid();
     $this->splitter[$id] = array();
     $this->splitter[$id]['id'] = $id;
@@ -183,7 +185,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
     }
 
     foreach ($this->element->splitter as $key => $splitter) {
-      $this->generateSplitter($form['elements']['panel']['container'][$key], $splitter, $element_id);
+      $this->generateSplitter($form['elements']['panel']['container'][$key], $splitter);
 
       $js_vars['transformers_pipelines']['splitter'][$key]['parameter'][$key]['target'] = 'any';
       $js_vars['transformers_pipelines']['splitter'][$key]['element_id'] = $key;
@@ -218,15 +220,15 @@ class TransformersPipelineUI extends RulesActionContainerUI {
     );
   }
 
-  public function generateSplitter(&$form, $splitter, $element_id) {
+  public function generateSplitter(&$form, $splitter) {
     $html_id = 'transformers_element_' . $splitter['id'];
 
-      $style = '';
-      if (isset($this->element->positionInfo[$html_id])) {
-        $info = $this->element->positionInfo[$html_id];
+    $style = '';
+    if (isset($this->element->positionInfo[$html_id])) {
+      $info = $this->element->positionInfo[$html_id];
 
-        $style = 'position:absolute;top:' . $info['position']['top'] . 'px;left:' . $info['position']['left'] . 'px;';
-      }
+      $style = 'position:absolute;top:' . $info['position']['top'] . 'px;left:' . $info['position']['left'] . 'px;';
+    }
     $form = array(
       '#prefix' => '<div style="' . $style . '" class="transformers_action" class="transformers_action" id ="' . $html_id . '">',
       '#suffix' => '</div>',
@@ -251,7 +253,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
     $form['head']['icons']['delete'] = array(
       '#type' => 'link',
       '#title' => 'X',
-      '#href' => 'admin/config/workflow/transformers/config/' . $this->element->name . '/splitter/delete',
+      '#href' => 'admin/config/workflow/transformers/config/' . $this->element->name . '/splitter/delete/' . $splitter['id'],
     );
 
     $form['anchors'] = array(
@@ -287,7 +289,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
         $html_id_name = $html_id . '_' . $splitter['provider'] . '-' . $name;
         $form['anchors']['out'][$name] = array(
           '#prefix' => '<li class="transformers_anchor transformers_outputs"><div  id="' . $html_id_name . '">',
-          '#markup' => ':' . $name,
+          '#markup' => $name,
           '#suffix' => '</div></li>',
         );
       }
