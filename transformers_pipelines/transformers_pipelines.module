@@ -1,70 +1,204 @@
 <?php
-// $Id: transformers_pipelines.module,v 1.1.2.1 2010/06/14 14:15:39 sgilits Exp $
+// $Id: transformers_pipelines.module,v 1.1.2.4 2010/08/15 15:58:58 sgilits Exp $
 
 /**
  * @file Pipeline compononent for actions
  */
 
 define('TRANSFORMERS_PIPELINE_PATH', 'admin/config/workflow/transformers');
-//define('TRANSFORMERS_PIPELINE_RULE_PATH', RULES_UI_PATH . '/transformers');
+define('TRANSFORMERS_PIPELINE_RULE_PATH', TRANSFORMERS_PIPELINE_PATH . '/config');
 
 /**
- * Implement hook_libraries_info().
+ * Implements hook_library().
  */
-function hook_libraries_info() {
+function transformers_pipelines_library() {
+  // jsPlumb.
   $libraries['jsplumb'] = array(
     'title' => 'jsPlumb',
-    'vendor url' => 'http://morrisonpitt.com/jsPlumb/html/index.html',
-    'download url' => 'http://jsplumb.googlecode.com/files/jquery.jsPlumb-1.2-all-min.js',
-    'version arguments' => array(
+    'website' => 'http://code.google.com/p/jsplumb/',
+    'version' => '1.2.2',
+    'js' => array(
+      drupal_get_path('module', 'transformers_pipelines') . '/jsPlumb-1.2.2-RC1.js' => array(),
+      drupal_get_path('module', 'transformers_pipelines') . '/jsPlumb-defaults-1.2.2-RC1.js' => array(),
+      drupal_get_path('module', 'transformers_pipelines') . '/jquery.jsPlumb-1.2.2-RC1.js' => array(),
     ),
-    files => array(
-      'js' => array(
-        'jquery.jsPlumb-1.2-all-min.js',
-      ),
+    'dependencies' => array(
+      array('system', 'jquery'),
+      array('system', 'ui'),
+      array('system', 'ui.draggable'),
+      array('system', 'ui.droppable'),
     ),
   );
-  dpm('hook_libraries_info');
+
   return $libraries;
 }
 
-
-/**
- * Implements hook_menu().
- */
 function transformers_pipelines_menu() {
-  $item[TRANSFORMERS_PIPELINE_PATH . '/%transformer'] = array(
-    'title' => t('Edit Transformer'),
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/add/%/%rules_element'] = array(
+    'title callback' => 'rules_get_title',
+    'title arguments' => array('Add a new @plugin', 7),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('transformers_form_edit_rules_config', 4),
+    'page arguments' => array('transformers_pipeline_add_element', 5, 7, 8),
     'access arguments' => array('administer rules'),
-    'description' => 'Manage reaction rules and rule components.',
+    'load arguments' => array(5),
     'type' => MENU_CALLBACK,
   );
-  return $item;
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/save_position'] = array(
+    'page callback' => 'transformers_pipeline_ajax_save_position',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipelines.ajax.inc',
+  );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/connect'] = array(
+    'page callback' => 'transformers_pipeline_ajax_connect',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipelines.ajax.inc',
+  );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/disconnect'] = array(
+    'page callback' => 'transformers_pipelines_ajax_disconnect',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipelines.ajax.inc',
+  );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/splitter/connect'] = array(
+    'page callback' => 'transformers_pipeline_splitter_connect',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipelines.ajax.inc',
+  );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/splitter/disconnect'] = array(
+    'page callback' => 'transformers_pipeline_splitter_disconnect',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipelines.ajax.inc',
+  );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/splitter/add'] = array(
+    'page callback' => 'transformers_pipeline_add_splitter',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('transformers_pipeline_add_splitter', 5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+  );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/splitter/delete/%transformer_splitter'] = array(
+    'page callback' => 'transformers_pipeline_add_splitter',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('transformers_pipeline_delete_splitter', 5, 8),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
 }
 
-function transformers_form_edit_rules_config($form, &$form_state, $rules_config) {
-  //dpm($rules_config);
+function transformer_splitter_load($provider_id) {
+  return $provider_id;
+}
+
+function transformers_pipeline_add_splitter($form, &$form_state, $rule_config) {
+  $form_state['rules_element'] = $rule_config;
+  $form['#submit'][] = 'transformers_pipeline_add_splitter_submit';
+  $form['return'] = array(
+    '#type' => 'submit',
+    '#value' => t('Return'),
+  );
+  $form_state['redirect'] = RulesPluginUI::defaultRedirect($rule_config);
   return $form;
 }
 
-/**
- * Loads a single rule configuration from the database.
- *
- * @see rules_config_load_multiple()
- */
-function transformer_load($name) {
-  $configs = entity_get_controller('rules_config')->load(array($name));
-  return $configs ? reset($configs) : FALSE;
+function transformers_pipeline_add_splitter_submit($form, &$form_state) {
+  $form_state['rules_element']->addSplitter();
+  $form_state['rules_element']->form_submit($form, $form_state);
+  $form_state['redirect'] = RulesPluginUI::defaultRedirect($form_state['rules_element']);
 }
 
-function hook_rules_plugin_info() {
+function transformers_pipeline_delete_splitter($form, &$form_state, $rules_config, $rule_splitter) {
+  $splitter = $rules_config->splitter[$rule_splitter];
+  $form_state += array('rules_config' => $rules_config, 'transformer_splitter' => $splitter);
+  $confirm_question = t('Are you sure you want to delete the provider %element_name?', array('%element_name' => $rules_config->label()));
+  return confirm_form($form, $confirm_question, RULES_UI_PATH, t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+}
+
+function transformers_pipeline_delete_splitter_validate($form, &$form_state) {
+  $splitter = $form_state['transformer_splitter'];
+  if (!empty($splitter['configured'])) {
+    form_set_error('Error', 'Provider is connected, please disconnect it first.');
+  }
+}
+
+function transformers_pipeline_delete_splitter_submit($form, &$form_state) {
+  $element = $form_state['rules_config'];
+  $splitter = $form_state['transformer_splitter'];
+  unset($element->splitter[$splitter['id']]);
+  $element->save();
+  $form_state['redirect'] = RulesPluginUI::defaultRedirect($element);
+}
+
+function transformers_pipeline_add_element($form, &$form_state, $rules_config, $plugin_name, RulesContainerPlugin $parent) {
+  $cache = rules_get_cache();
+  if (!isset($cache['plugin_info'][$plugin_name]['class'])) {
+    drupal_not_found();
+    exit;
+  }
+  $plugin_is_abstract = in_array('RulesAbstractPlugin', class_parents($cache['plugin_info'][$plugin_name]['class']));
+
+
+  RulesPluginUI::formDefaults($form);
+  $form_state += array('parent_element' => $parent, 'plugin' => $plugin_name);
+  $options = RulesPluginUI::getOptions($plugin_name . '_info');
+
+  $form['element_name'] = array(
+    '#type' => 'select',
+    '#title' => t('Select the %element to add', array('%element' => $plugin_name)),
+    '#options' => $options,
+  );
+
+  $form['#submit'][] = 'transformers_pipeline_add_element_submit';
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+function transformers_pipeline_add_element_submit($form, &$form_state) {
+  $element = rules_plugin_factory($form_state['plugin'], $form_state['values']['element_name']);
+
+  // Always add the new element at the bottom, thus set an appropriate weight.
+  $iterator = $form_state['parent_element']->getIterator();
+  if ($sibling = end($iterator)) {
+    $element->weight = $sibling->weight + 1;
+  }
+  // Clear the element settings so they won't be processed on serialization as
+  // there is nothing to be processed yet.
+  $element->settings = array();
+  $element->setParent($form_state['parent_element']);
+
+  $form_state['rules_element'] = $element;
+
+  $element->form_submit($form, $form_state);
+  if (empty($form_state['redirect'])) {
+    $form_state['redirect'] = RulesPluginUI::defaultRedirect($element);
+  }
+
+}
+
+function transformers_pipelines_rules_plugin_info() {
   return array(
     'transformer' => array(
-      'class' => 'TransformersCSV',
-      'embeddable' => 'RulesConditionContainer',
+      'label' => t('Transformer'),
+      'class' => 'Transformer',
       'component' => TRUE,
+      'embeddable' => FALSE,
+      'extenders' => array(
+        'RulesPluginUIInterface' => array(
+          'class' => 'TransformersPipelineUI',
+        ),
+      ),
     ),
   );
 }
