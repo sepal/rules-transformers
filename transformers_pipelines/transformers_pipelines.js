@@ -82,7 +82,6 @@ Drupal.behaviors.transformers_pipelines = {
       transformers_pipelines_generate_endpoints(element.element_id, element.parameter, endPointSplitterIn);
       transformers_pipelines_generate_endpoints(element.element_id, element.provides, endPointSplitterOut);
     }
-    
     jQuery.extend(elementlist, splitterlist);
     for (var elementid in elementlist) {
       element = elementlist[elementid];
@@ -129,7 +128,7 @@ transformers_pipelines_generate_endpoints = function(elementId, endPointsConfig,
       transformers_canvasOut[$(transformers_endpointsOut[endPointsConfig[key].source].canvas).attr('id')] = {
         source: endPointsConfig[key].source,
         connected: false,
-        source_element_id: elementId
+        source_element_id: endPointsConfig[key].element
       };
     }
   }
@@ -201,7 +200,7 @@ transformers_pipelines_drop = function(e, ui) {
         'transformers_target_connection': target
       },
       success: function(data) {
-        //location.reload();
+        location.reload();
       }
     });
   }

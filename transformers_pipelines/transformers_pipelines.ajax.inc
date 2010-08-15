@@ -15,22 +15,12 @@ function transformers_pipeline_ajax_connect($rules_config) {
   if (isset($connection) && isset($rules_config)) {
     $element_target = rules_element_load($connection['target_element_id'], $rules_config->name);
     $element_source = rules_element_load($connection['source_element_id'], $rules_config->name);
+
     if ($element_source->weight > $element_target->weight) {
       $element_target->weight = $element_source->weight+1;
     }
     $element_target->settings[$connection['target'] . ':select'] = $connection['source'];
 
-    /*try {
-      $element_target->integrityCheck();
-    }
-    catch (RulesException $e) {
-      $output['error']['title'] = $e->keys;
-      $output['error']['message'] = $e->getMessage();
-
-      $output['result'] = FALSE;
-      drupal_json_output($output);
-      return;
-    }*/
     $element_target->save();
     $output['result'] = TRUE;
   }
@@ -63,10 +53,10 @@ function transformers_pipeline_splitter_connect($rules_config) {
 
   if (isset($connection) && isset($rules_config)) {
     $id = $connection['target_element_id'];
-    $element_source = rules_element_load($connection['source_element_id'], $rules_config->name);
     if (empty($rules_config->splitter[$id]['configured'])) {
       $rules_config->splitter[$id]['configured'] = TRUE;
       $rules_config->splitter[$id]['provider'] = $connection['source'];
+      $rules_config->splitter[$id]['element'] = $connection['source_element_id'];
       $rules_config->splitter[$id]['target']['selector'] = $connection['target'];
       $rules_config->splitter[$id]['target']['element'] = $connection['target_element_id'];
       $rules_config->save();

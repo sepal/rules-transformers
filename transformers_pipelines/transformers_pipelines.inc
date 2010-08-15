@@ -162,6 +162,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
           '#suffix' => '</div></li>',
         );
         $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['target'] = $key;
+        $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['element'] = $element_id;
         $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['scope'] = $param['type'];
 
         $settings = $child->settings;
@@ -169,7 +170,6 @@ class TransformersPipelineUI extends RulesActionContainerUI {
           $js_vars['transformers_pipelines']['elements'][$id]['parameter'][$key]['source'] = $settings[$key . ':select'];
         }
       }
-
       $variables = $child->pluginProvidesVariables();
       foreach ($child->providesVariables() as $key => $var) {
         $info = $variables[$var['source name']];
@@ -180,6 +180,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
           '#suffix' => '</div></li>',
         );
         $js_vars['transformers_pipelines']['elements'][$id]['provides'][$key]['source'] = $key;
+        $js_vars['transformers_pipelines']['elements'][$id]['provides'][$key]['element'] = $id;
         $js_vars['transformers_pipelines']['elements'][$id]['provides'][$key]['scope'] = $param['type'];
       }
       $js_vars['transformers_pipelines']['elements'][$id]['element_id'] = $id;    $selector = 'annotated_csv_line';
@@ -194,6 +195,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
         $js_vars['transformers_pipelines']['splitter'][$key]['parameter'][$key]['source'] = $splitter['provider'];
         foreach ($this->element->getSelectorChild($splitter['provider']) as $name) {
           $js_vars['transformers_pipelines']['splitter'][$key]['provides'][$name]['source'] = $splitter['provider'] . ':' . $name;
+          $js_vars['transformers_pipelines']['splitter'][$key]['provides'][$name]['element'] = $splitter['element'];
         }
       }
     }
