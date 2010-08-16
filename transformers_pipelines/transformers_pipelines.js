@@ -64,7 +64,6 @@ Drupal.behaviors.transformers_pipelines = {
       };
     }
 
-
     elementlist = Drupal.settings.transformers_pipelines.elements;
     endPointIn.dropOptions.drop = transformers_pipelines_drop;
     for (var key in elementlist) {

@@ -34,14 +34,28 @@ class Transformer extends RulesActionContainer {
     return parent::exportChildren($key);
   }
 
+  protected function getRecursiveChild($parts, $wrappers, $level = 0) {
+    $result = array();
+    foreach ($wrappers as $name => $data) {
+      if (count($parts) > 1 && count($parts) > $level+1) {
+        if ($name == $parts[$level+1]) {
+          $result = $this->getRecursiveChild($parts, $data, $level+1);
+        }
+      }
+      else {
+        $result[$name] = $name;
+      }
+    }
+    return $result;
+  }
+
   public function getSelectorChild($provider, $level = 0) {
     $variables = $this->call('stateVariables', array(TRUE));
     $result = array();
+    $parts = explode(':', $provider);
     try {
-      $wrappers = rules_wrap_data($variables, $variables[$provider], TRUE);
-      foreach ($wrappers as $name => $data) {
-        $result[$name] = $name;
-      }
+      $wrappers = rules_wrap_data($variables, $variables[$parts[0]], TRUE);
+      $result = $this->getRecursiveChild($parts, $wrappers);
     }
     catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
@@ -289,7 +303,8 @@ class TransformersPipelineUI extends RulesActionContainerUI {
         '#suffix' => '</div></li>',
       );
       foreach ($this->element->getSelectorChild($splitter['provider']) as $name) {
-        $html_id_name = $html_id . '_' . $splitter['provider'] . '-' . $name;
+
+        $html_id_name = $html_id . '_' . str_replace(':', '-', $splitter['provider'])  . '-' . $name;
         $form['anchors']['out'][$name] = array(
           '#prefix' => '<li class="transformers_anchor transformers_outputs"><div  id="' . $html_id_name . '">',
           '#markup' => $name,
