@@ -82,9 +82,9 @@ Drupal.behaviors.transformers_pipelines = {
       transformers_pipelines_generate_endpoints(element.element_id, element.parameter, endPointSplitterIn);
       transformers_pipelines_generate_endpoints(element.element_id, element.provides, endPointSplitterOut);
     }
-    jQuery.extend(elementlist, splitterlist);
-    for (var elementid in elementlist) {
-      element = elementlist[elementid];
+    var droplist = jQuery.extend(elementlist, splitterlist);
+    for (var elementid in droplist) {
+      element = droplist[elementid];
       for (var key in element.parameter) {
         if (element.parameter[key].source != null) {
           inputid = elementid + element.parameter[key].target;
@@ -111,7 +111,7 @@ transformers_pipelines_generate_endpoints = function(elementId, endPointsConfig,
     if (endPointOptions.isTarget && !endPointOptions.isSource) {
       var inputid = elementId + endPointsConfig[key].target;
       var top = $("#" + $element_html_id + '_' + endPointsConfig[key].target).position().top;
-      transformers_endpointsIn[inputid] = jsPlumb.addEndpoint($element_html_id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(0, top/element_height + 0.15, -1, 0) }, endPointOptions));
+      transformers_endpointsIn[inputid] = jsPlumb.addEndpoint($element_html_id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(0, top/element_height + 0.05, -1, 0) }, endPointOptions));
       transformers_canvasIn[$(transformers_endpointsIn[inputid].canvas).attr('id')] = {
         target: endPointsConfig[key].target,
         connected: false,
@@ -124,7 +124,7 @@ transformers_pipelines_generate_endpoints = function(elementId, endPointsConfig,
       // objects(or as html ids), I had to replaced it with a -.
       var source = endPointsConfig[key].source.replace(/:/g, "-");
       var top = $("#" + $element_html_id + '_' + source).position().top;
-      transformers_endpointsOut[endPointsConfig[key].source] = jsPlumb.addEndpoint($element_html_id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(1, top/element_height + 0.15, 1, 0) }, endPointOptions));
+      transformers_endpointsOut[endPointsConfig[key].source] = jsPlumb.addEndpoint($element_html_id, jsPlumb.extend({ anchor:jsPlumb.makeAnchor(1, top/element_height + 0.05, 1, 0) }, endPointOptions));
       transformers_canvasOut[$(transformers_endpointsOut[endPointsConfig[key].source].canvas).attr('id')] = {
         source: endPointsConfig[key].source,
         connected: false,
