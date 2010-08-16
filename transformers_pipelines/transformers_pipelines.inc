@@ -46,10 +46,10 @@ class Transformer extends RulesActionContainer {
       else {
         $result[$name]['name'] = $name;
         if ($wrapper instanceof EntityStructureWrapper) {
-           $result[$name]['is_structure'] = TRUE;
+          $result[$name]['is_structure'] = TRUE;
         }
         else {
-           $result[$name]['is_structure'] = FALSE;
+          $result[$name]['is_structure'] = FALSE;
         }
       }
     }
@@ -314,7 +314,7 @@ class TransformersPipelineUI extends RulesActionContainerUI {
       foreach ($this->element->getSelectorChild($splitter['provider']) as $data) {
         $name = $data['name'];
         $struct_class = ($data['is_structure'] ? 'transformers_out_structure' : '');
-        $html_id_name = $html_id . '_' . str_replace(':', '-', $splitter['provider'])  . '-' . $name;
+        $html_id_name = $html_id . '_' . str_replace(':', '-', $splitter['provider']) . '-' . $name;
         $form['anchors']['out'][$name] = array(
           '#prefix' => '<li class="transformers_anchor transformers_outputs ' . $struct_class . '"><div  id="' . $html_id_name . '">',
           '#markup' => $name,
