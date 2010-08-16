@@ -86,13 +86,14 @@ function transformers_pipelines_menu() {
     'file' => 'transformers_pipelines.ajax.inc',
   );
   $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/splitter/add'] = array(
-    'page callback' => 'transformers_pipeline_add_splitter',
+    'title' => 'Add a new Splitter',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('transformers_pipeline_add_splitter', 5),
     'access arguments' => array('administer rules'),
     'type' => MENU_CALLBACK,
   );
   $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/splitter/delete/%transformer_splitter'] = array(
+    'title' => 'Delete a Splitter',
     'page callback' => 'transformers_pipeline_add_splitter',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('transformers_pipeline_delete_splitter', 5, 8),
@@ -109,9 +110,14 @@ function transformer_splitter_load($provider_id) {
 function transformers_pipeline_add_splitter($form, &$form_state, $rule_config) {
   $form_state['rules_element'] = $rule_config;
   $form['#submit'][] = 'transformers_pipeline_add_splitter_submit';
+  $form['message'] = array(
+    '#prefix' => '<div>',
+    '#markup' => t('You are about to add a new splitter to the transformer %label.', array('%label' => $rule_config->label())),
+    '#suffix' => '</div>',
+  );
   $form['return'] = array(
     '#type' => 'submit',
-    '#value' => t('Return'),
+    '#value' => t('Continue'),
   );
   $form_state['redirect'] = RulesPluginUI::defaultRedirect($rule_config);
   return $form;
@@ -126,7 +132,7 @@ function transformers_pipeline_add_splitter_submit($form, &$form_state) {
 function transformers_pipeline_delete_splitter($form, &$form_state, $rules_config, $rule_splitter) {
   $splitter = $rules_config->splitter[$rule_splitter];
   $form_state += array('rules_config' => $rules_config, 'transformer_splitter' => $splitter);
-  $confirm_question = t('Are you sure you want to delete the provider %element_name?', array('%element_name' => $rules_config->label()));
+  $confirm_question = t('Are you sure you want to delete the splitter from the component %element_name?', array('%element_name' => $rules_config->label()));
   return confirm_form($form, $confirm_question, RULES_UI_PATH, t('This action cannot be undone.'), t('Delete'), t('Cancel'));
 }
 
