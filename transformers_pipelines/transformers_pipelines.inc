@@ -11,6 +11,7 @@
 class Transformer extends RulesActionContainer {
 
   protected $itemName = 'transformer';
+  public $panelHeight = 200;
   public $positionInfo = array();
   public $splitter = array();
 
@@ -19,7 +20,7 @@ class Transformer extends RulesActionContainer {
   }
 
   public function __sleep() {
-    return parent::__sleep() + array('splitter' => 'splitter', 'positionInfo' => 'positionInfo');
+    return parent::__sleep() + array('splitter' => 'splitter', 'positionInfo' => 'positionInfo', 'panelHeight' => 'panelHeight');
   }
 
   public function addSplitter() {
@@ -100,8 +101,10 @@ class TransformersPipelineUI extends RulesActionContainerUI {
     $js_vars = array();
     $js_vars['transformers_pipelines']['rule'] = $this->element->name;
 
+    $panel_style = (isset($this->element->panelHeight) ? 'height: ' . $this->element->panelHeight . 'px;' : '');
+
     $form['elements']['variables'] = array(
-      '#prefix' => '<div id="transformers_variables"><ul class="transformers_variables">',
+      '#prefix' => '<div id="transformers_variables" style="' . $panel_style . '"><ul class="transformers_variables">',
       '#suffix' => '</ul></div>',
     );
 
@@ -114,9 +117,8 @@ class TransformersPipelineUI extends RulesActionContainerUI {
       $js_vars['transformers_pipelines']['variables'][$key]['source'] = $key;
       $js_vars['transformers_pipelines']['variables'][$key]['scope'] = $child['type'];
     }
-
     $form['elements']['panel'] = array(
-      '#prefix' => '<div id="transformers_panel">',
+      '#prefix' => '<div id="transformers_panel" style="' . $panel_style . '">',
       '#suffix' => '</div>',
     );
     foreach ($iterator as $key => $child) {

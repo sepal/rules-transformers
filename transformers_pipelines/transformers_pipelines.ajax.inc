@@ -94,3 +94,14 @@ function transformers_pipeline_ajax_save_position($rule_config) {
   $rule_config->save();
   drupal_json_output($output);
 }
+
+/**
+ * Callback that saves the height of the panel.
+ */
+function transformers_pipeline_ajax_panel_height($rule_config) {
+  $height = (isset($_POST['panel_height']) ? $_POST['panel_height'] : NULL);
+  $output['result'] = TRUE;
+  $rule_config->panelHeight = $height;
+  $rule_config->save();
+  drupal_json_output($output);
+}

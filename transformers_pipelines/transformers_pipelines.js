@@ -16,9 +16,10 @@ Drupal.behaviors.transformers_pipelines = {
 
     jsPlumb.draggable($('.transformers_action'));
     $('#transformers_panel').resizable({
-      handles: 'n, s',
+      handles: 's',
       alsoResize: '#transformers_variables',
-      minHeight: $('#transformers_panel').css('height').replace(/px/g, '')
+      minHeight: 200,
+      stop: transformers_pipelines_panel_save_height
     });
     
     var fillColor = '#0074bd';
@@ -246,6 +247,25 @@ transformers_pipelines_drop_splitter = function(e, ui) {
       }
     });
   }
+}
+
+transformers_pipelines_panel_save_height = function(e, ui) {
+
+  var url = Drupal.settings.basePath + 'admin/config/workflow/transformers/config/' + transformers_current_rule + '/panel_height';
+  $.ajax({
+    url: location.protocol + '//' + location.host + url,
+    type: 'POST',
+    dataType: 'json',
+    data:{
+      'panel_height': $(this).height()
+    },
+    success: function(data) {
+      if (data.result == false) {
+        alert(data.error.message);
+        location.reload(); // Temporary, while now detach function available.
+      }
+    }
+  });
 }
 
 })(jQuery);

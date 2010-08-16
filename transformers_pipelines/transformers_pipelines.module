@@ -50,6 +50,13 @@ function transformers_pipelines_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'transformers_pipelines.ajax.inc',
   );
+  $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/panel_height'] = array(
+    'page callback' => 'transformers_pipeline_ajax_panel_height',
+    'page arguments' => array(5),
+    'access arguments' => array('administer rules'),
+    'type' => MENU_CALLBACK,
+    'file' => 'transformers_pipelines.ajax.inc',
+  );
   $items[TRANSFORMERS_PIPELINE_RULE_PATH . '/%rules_config/connect'] = array(
     'page callback' => 'transformers_pipeline_ajax_connect',
     'page arguments' => array(5),

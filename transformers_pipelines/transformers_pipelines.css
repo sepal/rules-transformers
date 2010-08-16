@@ -6,13 +6,11 @@
 
 #transformers_panel {
   border: 1px solid #CCCCCC;
-  height: 20em;
   padding: 5px 5px;
 }
 
 #transformers_variables {
   border-right: 1px solid #CCCCCC;
-  height: 20em;
   float: left;
   padding: 0 5px;
 }
