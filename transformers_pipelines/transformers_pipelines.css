@@ -104,3 +104,8 @@ li.transformers_inputs {
 li.transformers_outputs {
   padding-right: 15px;
 }
+
+.transformers_out_structure {
+  background-color: #CCCCCC;
+  font-style: italic;
+}

@@ -36,14 +36,20 @@ class Transformer extends RulesActionContainer {
 
   protected function getRecursiveChild($parts, $wrappers, $level = 0) {
     $result = array();
-    foreach ($wrappers as $name => $data) {
+    foreach ($wrappers as $name => $wrapper) {
       if (count($parts) > 1 && count($parts) > $level+1) {
         if ($name == $parts[$level+1]) {
-          $result = $this->getRecursiveChild($parts, $data, $level+1);
+          $result = $this->getRecursiveChild($parts, $wrapper, $level+1);
         }
       }
       else {
-        $result[$name] = $name;
+        $result[$name]['name'] = $name;
+        if ($wrapper instanceof EntityStructureWrapper) {
+           $result[$name]['is_structure'] = TRUE;
+        }
+        else {
+           $result[$name]['is_structure'] = FALSE;
+        }
       }
     }
     return $result;
@@ -207,7 +213,8 @@ class TransformersPipelineUI extends RulesActionContainerUI {
       $js_vars['transformers_pipelines']['splitter'][$key]['element_id'] = $key;
       if (!empty($splitter['configured'])) {
         $js_vars['transformers_pipelines']['splitter'][$key]['parameter'][$key]['source'] = $splitter['provider'];
-        foreach ($this->element->getSelectorChild($splitter['provider']) as $name) {
+        foreach ($this->element->getSelectorChild($splitter['provider']) as $data) {
+          $name = $data['name'];
           $js_vars['transformers_pipelines']['splitter'][$key]['provides'][$name]['source'] = $splitter['provider'] . ':' . $name;
           $js_vars['transformers_pipelines']['splitter'][$key]['provides'][$name]['element'] = $splitter['element'];
         }
@@ -302,11 +309,12 @@ class TransformersPipelineUI extends RulesActionContainerUI {
         '#markup' => $splitter['provider'],
         '#suffix' => '</div></li>',
       );
-      foreach ($this->element->getSelectorChild($splitter['provider']) as $name) {
-
+      foreach ($this->element->getSelectorChild($splitter['provider']) as $data) {
+        $name = $data['name'];
+        $struct_class = ($data['is_structure'] ? 'transformers_out_structure' : '');
         $html_id_name = $html_id . '_' . str_replace(':', '-', $splitter['provider'])  . '-' . $name;
         $form['anchors']['out'][$name] = array(
-          '#prefix' => '<li class="transformers_anchor transformers_outputs"><div  id="' . $html_id_name . '">',
+          '#prefix' => '<li class="transformers_anchor transformers_outputs ' . $struct_class . '"><div  id="' . $html_id_name . '">',
           '#markup' => $name,
           '#suffix' => '</div></li>',
         );
